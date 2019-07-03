@@ -1,0 +1,13 @@
+targets:
+  $default:
+    builders:
+      type_handler:
+        enabled: true
+builders:
+  type_handler:
+    import: "package:type_handler/builder.dart"
+    builder_factories: ["typeHandler"]
+    build_extensions: {".dart": [".type_handler.g.part"]}
+    auto_apply: dependents
+    build_to: cache
+    applies_builders: ["source_gen|combining_builder"]
