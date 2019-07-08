@@ -3,3 +3,5 @@
 class Subtype {
   const Subtype();
 }
+
+const Subtype subtype = Subtype();

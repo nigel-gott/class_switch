@@ -26,6 +26,17 @@ class TypeHandlerGenerator extends Generator {
   }
 
   String gen(String superType, List<ClassElement> subTypes) {
+    final handlerClass = generateHandlerClass(superType, subTypes);
+    final handlerClassWithDefaults =
+        generateHandlerClassWithDefaults(superType, subTypes);
+    return """
+    $handlerClass
+    $handlerClassWithDefaults
+    """;
+  }
+
+  String generateHandlerFunction(
+      String superType, List<ClassElement> subTypes) {
     var arguments = subTypes
         .map((e) => "T Function(${e.name}) ${handler(e.name)}")
         .join(",");
@@ -43,20 +54,20 @@ class TypeHandlerGenerator extends Generator {
         .join();
 
     return """
-    Function($superType) ${superTypeParameterName}Handler<T>($arguments) {
+    static Function($superType) ${superTypeParameterName}Handler<T>($arguments) {
       return ($superTypeParameterName) {
     $firstIf
     $elseIfs
     else {
       throw UnimplementedError(
-          "Unknown class given to handler: \$$superTypeParameterName. You must annotate every subtype of $superType with @Subtype. ");
+          "Unknown class given to handler: \$$superTypeParameterName. Subtype code generation has done something incorrectly. ");
     }
       };
     }
     """;
   }
 
-  String handler(String type) => "${lowerFirstChar(type)}Handler";
+  String handler(String type) => "${lowerFirstChar(type)}";
 
   String ifStatement(String param, String type, String handler) => """
   if($param is $type) {
@@ -70,4 +81,51 @@ class TypeHandlerGenerator extends Generator {
   """;
 
   String lowerFirstChar(String e) => e.replaceRange(0, 1, e[0].toLowerCase());
+
+  String generateHandlerClass(String superType, List<ClassElement> subTypes) {
+    final handlerFunction = generateHandlerFunction(superType, subTypes);
+    final superTypeArgument = lowerFirstChar(superType);
+    final superTypeHandlerFunction = "${lowerFirstChar(superType)}Handler";
+    final subTypeMethodNames =
+        subTypes.map((sub) => lowerFirstChar(sub.name)).join(",");
+    final subTypeMethodDefinitions = subTypes.map((sub) {
+      var lowerSubType = lowerFirstChar(sub.name);
+      return """T $lowerSubType(${sub.name} $lowerSubType);""";
+    }).join("\n");
+    return """
+    abstract class ${superType}Handler<T> {
+      $handlerFunction
+      T handle($superType $superTypeArgument) {
+        return ${superTypeHandlerFunction}($subTypeMethodNames)($superTypeArgument);
+      }
+       
+      $subTypeMethodDefinitions
+    }
+    """;
+  }
+
+  String generateHandlerClassWithDefaults(
+      String superType, List<ClassElement> subTypes) {
+    final superTypeArgument = lowerFirstChar(superType);
+    final superTypeHandlerFunction = "${lowerFirstChar(superType)}Handler";
+    final subTypeMethodNames =
+        subTypes.map((sub) => lowerFirstChar(sub.name)).join(",");
+    final subTypeMethodDefinitions = subTypes.map((sub) {
+      var lowerSubType = lowerFirstChar(sub.name);
+      return """T $lowerSubType(${sub.name} $lowerSubType){
+        return defaultValue();
+      }""";
+    }).join("\n");
+    return """
+    abstract class ${superType}HandlerWithDefault<T> {
+      T handle($superType $superTypeArgument) {
+        return ${superType}Handler.${superTypeHandlerFunction}($subTypeMethodNames)($superTypeArgument);
+      }
+      
+      T defaultValue();
+       
+      $subTypeMethodDefinitions
+    }
+    """;
+  }
 }
