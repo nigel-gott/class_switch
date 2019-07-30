@@ -95,7 +95,7 @@ class TypeHandlerGenerator extends Generator {
     return """
     abstract class ${superType}Handler<T> {
       $handlerFunction
-      T handle($superType $superTypeArgument) {
+      T handle$superType($superType $superTypeArgument) {
         return ${superTypeHandlerFunction}($subTypeMethodNames)($superTypeArgument);
       }
        
@@ -118,7 +118,7 @@ class TypeHandlerGenerator extends Generator {
     }).join("\n");
     return """
     abstract class ${superType}HandlerWithDefault<T> {
-      T handle($superType $superTypeArgument) {
+      T handle$superType($superType $superTypeArgument) {
         return ${superType}Handler.${superTypeHandlerFunction}($subTypeMethodNames)($superTypeArgument);
       }
       
