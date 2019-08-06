@@ -38,3 +38,17 @@ class A extends Orange {}
 class X {}
 
 class Y extends X {}
+
+@CrossSubtype()
+abstract class State {}
+
+class StateA extends State {}
+
+class StateB extends State {}
+
+@CrossSubtype()
+abstract class Event {}
+
+class EventA extends Event {}
+
+class EventB extends Event {}

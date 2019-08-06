@@ -21,7 +21,7 @@ abstract class FruitHandler<T> {
     };
   }
 
-  T handle(Fruit fruit) {
+  T handleFruit(Fruit fruit) {
     return fruitHandler(apple, orange)(fruit);
   }
 
@@ -30,7 +30,7 @@ abstract class FruitHandler<T> {
 }
 
 abstract class FruitHandlerWithDefault<T> {
-  T handle(Fruit fruit) {
+  T handleFruit(Fruit fruit) {
     return FruitHandler.fruitHandler(apple, orange)(fruit);
   }
 
@@ -57,7 +57,7 @@ abstract class OrangeHandler<T> {
     };
   }
 
-  T handle(Orange orange) {
+  T handleOrange(Orange orange) {
     return orangeHandler(a)(orange);
   }
 
@@ -65,7 +65,7 @@ abstract class OrangeHandler<T> {
 }
 
 abstract class OrangeHandlerWithDefault<T> {
-  T handle(Orange orange) {
+  T handleOrange(Orange orange) {
     return OrangeHandler.orangeHandler(a)(orange);
   }
 
@@ -88,7 +88,7 @@ abstract class XHandler<T> {
     };
   }
 
-  T handle(X x) {
+  T handleX(X x) {
     return xHandler(y)(x);
   }
 
@@ -96,7 +96,7 @@ abstract class XHandler<T> {
 }
 
 abstract class XHandlerWithDefault<T> {
-  T handle(X x) {
+  T handleX(X x) {
     return XHandler.xHandler(y)(x);
   }
 
@@ -105,4 +105,27 @@ abstract class XHandlerWithDefault<T> {
   T y(Y y) {
     return defaultValue();
   }
+}
+
+abstract class StateAndEventHandler<T> {
+  T handleStateAndEvent(State state, Event event) {
+    if (state is StateA) {
+      if (event is EventA) {
+        return handleStateAEventA(state, event);
+      } else {
+        return handleStateAEventB(state, event);
+      }
+    } else {
+      if (event is EventA) {
+        return handleStateBEventA(state, event);
+      } else {
+        return handleStateBEventB(state, event);
+      }
+    }
+  }
+
+  T handleStateAEventA(StateA state, EventA event);
+  T handleStateAEventB(StateA state, EventB event);
+  T handleStateBEventA(StateB state, EventA event);
+  T handleStateBEventB(StateB state, EventB event);
 }
