@@ -8,7 +8,7 @@ Created from templates made available by Stagehand under a BSD-style
 A simple usage example:
 
 ```dart
-import 'package:type_handler/type_handler.dart';
+import 'package:class_switch/class_switch.dart';
 
 main() {
   var awesome = new Awesome();

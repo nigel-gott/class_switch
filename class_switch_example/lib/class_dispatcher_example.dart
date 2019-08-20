@@ -1,7 +1,7 @@
 /// Support for doing something awesome.
 ///
 /// More dartdocs go here.
-library type_handler_example;
+library class_dispatcher_example;
 
 export 'src/base.dart';
 

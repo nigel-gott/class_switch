@@ -1,4 +1,4 @@
-import 'package:type_handler/type_handler.dart';
+//import 'package:class_dispatcher/class_dispatcher.dart';
 
 part 'base.g.dart';
 
@@ -24,29 +24,31 @@ class MyFruitHandler extends FruitHandler<int> {
   }
 }
 
-@Subtype()
+//@Subtype()
 class Fruit {}
 
-class Apple extends Fruit {}
+class Apple extends Fruit {
+  int imAnApple() => 1;
+}
 
-@Subtype()
+//@Subtype()
 class Orange extends Fruit {}
 
 class A extends Orange {}
 
-@Subtype()
+//@Subtype()
 class X {}
 
 class Y extends X {}
 
-@CrossSubtype()
+//@CrossSubtype()
 abstract class State {}
 
 class StateA extends State {}
 
 class StateB extends State {}
 
-@CrossSubtype()
+//@CrossSubtype()
 abstract class Event {}
 
 class EventA extends Event {}

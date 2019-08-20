@@ -3,7 +3,7 @@ import 'dart:async';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:build/src/builder/build_step.dart';
 import 'package:source_gen/source_gen.dart';
-import 'package:type_handler/src/type_handler_base.dart';
+import 'package:class_switch/src/class_switch_base.dart';
 
 class TypeHandlerGenerator extends Generator {
   bool first = true;

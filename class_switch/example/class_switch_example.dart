@@ -1,4 +1,4 @@
-import 'package:type_handler/type_handler.dart';
+import 'package:class_switch/class_switch.dart';
 
 main() {
   print(fruitHandler((apple) {
@@ -85,15 +85,11 @@ class EventA extends Event {}
 
 class EventB extends Event {}
 
-abstract class EventAndStateHandler<T> {
-  T handleEventAndState(Event event, State state) {}
-}
 
 
 abstract class StateAndEventHandler<T>{
   T handleStateAndEvent(State state,Event event){
     if(state is StateA){
-
       if(event is EventA){
         return handleStateAEventA(state, event);
       }
@@ -102,7 +98,6 @@ abstract class StateAndEventHandler<T>{
       }
     }
     if(state is StateB){
-
       if(event is EventA){
         return handleStateBEventA(state, event);
       }
@@ -110,6 +105,7 @@ abstract class StateAndEventHandler<T>{
         return handleStateBEventB(state, event);
       }
     }
+    return null;
 
   }
 
@@ -119,5 +115,4 @@ abstract class StateAndEventHandler<T>{
   T handleStateBEventA(StateB state, EventA event);
   T handleStateBEventB(StateB state, EventB event);
 
-}
 }

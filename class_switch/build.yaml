@@ -1,13 +1,13 @@
 targets:
   $default:
     builders:
-      type_handler:
+      class_switch:
         enabled: true
 builders:
-  type_handler:
-    import: "package:type_handler/builder.dart"
+  class_switch:
+    import: "package:class_switch/builder.dart"
     builder_factories: ["typeHandler"]
-    build_extensions: {".dart": [".type_handler.g.part"]}
+    build_extensions: {".dart": [".class_switch.g.part"]}
     auto_apply: dependents
     build_to: cache
     applies_builders: ["source_gen|combining_builder"]
