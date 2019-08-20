@@ -1,7 +1,7 @@
 /// Support for doing something awesome.
 ///
 /// More dartdocs go here.
-library class_dispatcher_example;
+library class_switch_example;
 
 export 'src/base.dart';
 
