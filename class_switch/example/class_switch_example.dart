@@ -65,54 +65,9 @@ abstract class FruitHandlerWithDefault<T> {
 
 class Fruit {}
 
-@Subtype()
+@ClassSwitch()
 class Apple extends Fruit {}
 
-@Subtype()
+@ClassSwitch()
 class Orange extends Fruit {}
 
-@CrossSubtype()
-abstract class State {}
-
-class StateA extends State {}
-
-class StateB extends State {}
-
-@CrossSubtype()
-abstract class Event {}
-
-class EventA extends Event {}
-
-class EventB extends Event {}
-
-
-
-abstract class StateAndEventHandler<T>{
-  T handleStateAndEvent(State state,Event event){
-    if(state is StateA){
-      if(event is EventA){
-        return handleStateAEventA(state, event);
-      }
-      if(event is EventB){
-        return handleStateAEventB(state, event);
-      }
-    }
-    if(state is StateB){
-      if(event is EventA){
-        return handleStateBEventA(state, event);
-      }
-      if(event is EventB){
-        return handleStateBEventB(state, event);
-      }
-    }
-    return null;
-
-  }
-
-
-  T handleStateAEventA(StateA state, EventA event);
-  T handleStateAEventB(StateA state, EventB event);
-  T handleStateBEventA(StateB state, EventA event);
-  T handleStateBEventB(StateB state, EventB event);
-
-}

@@ -1,11 +1,7 @@
-// TODO: Put public facing types in this file.
 
-class Subtype {
-  const Subtype();
+class ClassSwitch {
+  const ClassSwitch();
 }
 
-class CrossSubtype {
-  const CrossSubtype();
-}
 
-const Subtype subtype = Subtype();
+const ClassSwitch class_switch = ClassSwitch();

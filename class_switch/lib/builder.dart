@@ -3,4 +3,4 @@ import 'package:source_gen/source_gen.dart';
 import 'package:class_switch/src/class_switch_generator.dart';
 
 Builder typeHandler(BuilderOptions options) =>
-    SharedPartBuilder([TypeHandlerGenerator()], 'class_switch');
+    SharedPartBuilder([ClassSwitchGenerator()], 'class_switch');
