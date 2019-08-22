@@ -5,152 +5,169 @@ import 'package:build/src/builder/build_step.dart';
 import 'package:source_gen/source_gen.dart';
 import 'package:class_switch/src/class_switch_base.dart';
 
-class ClassSwitchGenerator extends Generator {
+class ClassSwitchCodeBuilder {
+  final ClassElement _baseClass;
+  final List<ClassElement> _subClasses;
 
-  static const TypeChecker ClassSwitchAnnotationTypeChecker = TypeChecker.fromRuntime(ClassSwitch);
-
-
-  @override
-  FutureOr<String> generate(LibraryReader library, BuildStep buildStep) {
-    return makeSubtypes(library);
-  }
-
-  String makeSubtypes(LibraryReader library) {
-    var codeElementsAnnotatedWithClassSwitch = library.annotatedWith(ClassSwitchAnnotationTypeChecker);
-    if (codeElementsAnnotatedWithClassSwitch.isEmpty) {
-      return "";
-    }
-    return codeElementsAnnotatedWithClassSwitch.map((e) => generateCodeForAnnotatedElement(e.element, library)).join();
-
-  }
-
-  String generateCodeForAnnotatedElement(Element e, LibraryReader library) {
-    if(e is ClassElement) {
-      return generateCodeForAnnotatedClassElement(e, library);
+  factory ClassSwitchCodeBuilder.fromAnnotation(
+      Element baseClassElement, LibraryReader libraryReader) {
+    if (baseClassElement is ClassElement) {
+      final List<ClassElement> subClasses = libraryReader.classes
+          .where((s) => s.supertype.element == baseClassElement)
+          .toList();
+      return ClassSwitchCodeBuilder._withClassElements(
+          baseClassElement, subClasses);
     } else {
-      throw Exception("Only class's can be annotated with @class_switch, incorrectly found $e annotated with it!");
+      throw Exception(
+          "Only class's can be annotated with @class_switch, incorrectly found $baseClassElement annotated with it!");
     }
   }
-  String generateCodeForAnnotatedClassElement(ClassElement e, LibraryReader library) {
-    return generateCodeForClassAndSubClasses(e, library.classes.where((s) => s.supertype.element == e).toList());
-  }
 
-  String generateCodeForClassAndSubClasses(ClassElement superType, List<ClassElement> subTypes) {
-    final String superTypeName = superType.name;
-    final subTypeNames = subTypes.map((e) => e.name).toList();
+  ClassSwitchCodeBuilder._withClassElements(this._baseClass, this._subClasses);
+
+  String generateCodeForClassAndSubClasses() {
+    final String baseClassName = _baseClass.name;
+    final subClassNames = _subClasses.map((e) => e.name).toList();
     return """
-    ${generateSwitcherClass(superTypeName, subTypeNames)}
-    ${generateSwitcherClassWithDefaults(superTypeName, subTypeNames)}
+    ${_generateSwitcherClass(baseClassName, subClassNames)}
+    ${_generateSwitcherClassWithDefaults(baseClassName, subClassNames)}
     """;
   }
 
-  String generateSwitcherClass(String superTypeName, List<String> subTypeNames) {
-    final String switcherFunction = generateSwitcherFunction(superTypeName, subTypeNames);
-    final String subTypeMethodDefinitions = generateAbstractSubTypeMethods(subTypeNames);
-    final String switcherAcceptFunction = generateSwitcherAcceptFunction(superTypeName, subTypeNames);
+  String _generateSwitcherClass(
+      String baseClassName, List<String> subClassNames) {
+    final String switcherFunction =
+    _generateSwitcherFunction(baseClassName, subClassNames);
+    final String subClassMethodDefinitions =
+    _generateAbstractsubClassMethods(subClassNames);
+    final String switcherAcceptFunction =
+    _generateSwitcherAcceptFunction(baseClassName, subClassNames);
     return """
-    abstract class ${superTypeName}Switcher<T> {
+    abstract class ${baseClassName}Switcher<T> {
       $switcherFunction
       $switcherAcceptFunction 
        
-      $subTypeMethodDefinitions
+      $subClassMethodDefinitions
     }
     """;
   }
 
-  String generateSwitcherAcceptFunction(String superTypeName, List<String> subTypeNames){
-    final acceptFunctionParameterName = lowerFirstChar(superTypeName);
-    final subTypeMethodNamesAsParameterList = subTypeNames.map(subTypeAbstractMethodName).join(",");
+  String _generateSwitcherAcceptFunction(
+      String baseClassName, List<String> subClassNames) {
+    final acceptFunctionParameterName = _lowerFirstChar(baseClassName);
+    final subClassMethodNamesAsParameterList =
+    subClassNames.map(_subClassAbstractMethodName).join(",");
     return """
-      T accept$superTypeName($superTypeName $acceptFunctionParameterName) {
-        return ${switcherFunctionName(superTypeName)}($subTypeMethodNamesAsParameterList)($acceptFunctionParameterName);
+      T accept$baseClassName($baseClassName $acceptFunctionParameterName) {
+        return ${_switcherFunctionName(baseClassName)}($subClassMethodNamesAsParameterList)($acceptFunctionParameterName);
       }
     """;
   }
 
-  String generateAbstractSubTypeMethods(List<String> subTypeNames) {
-    return subTypeNames.map((subTypeName) {
-    final String methodName = subTypeAbstractMethodName(subTypeName);
-    final String subTypeParameterName = methodName;
-    return """T $methodName(${subTypeName} $subTypeParameterName);""";
-  }).join("\n");
+  String _generateAbstractsubClassMethods(List<String> subClassNames) {
+    return subClassNames.map((subClassName) {
+      final String methodName = _subClassAbstractMethodName(subClassName);
+      final String subClassParameterName = methodName;
+      return """T $methodName(${subClassName} $subClassParameterName);""";
+    }).join("\n");
   }
 
-  String subTypeAbstractMethodName(String subTypeClassName) => lowerFirstChar(subTypeClassName);
+  String _subClassAbstractMethodName(String subClassClassName) =>
+      _lowerFirstChar(subClassClassName);
 
-  String switcherFunctionName(String superType) => "${lowerFirstChar(superType)}Switcher";
+  String _switcherFunctionName(String baseClass) =>
+      "${_lowerFirstChar(baseClass)}Switcher";
 
-  String generateSwitcherFunction(
-      String superType, List<String> subTypeNames) {
-    final String subTypeMethodParameters = subTypeNames
-        .map((e) => "T Function($e) ${handler(e)}")
-        .join(",");
+  String _generateSwitcherFunction(String baseClass, List<String> subClassNames) {
+    final String subClassMethodParameters =
+    subClassNames.map((e) => "T Function($e) ${_switcher(e)}").join(",");
 
-    final String firstSubType = subTypeNames[0];
-    final List<String> remainingSubTypeNames = subTypeNames.sublist(1);
+    final String firstsubClass = subClassNames[0];
+    final List<String> remainingsubClassNames = subClassNames.sublist(1);
 
-    var superTypeParameterName = lowerFirstChar(superType);
+    var baseClassParameterName = _lowerFirstChar(baseClass);
 
-    var firstIf =
-        ifStatement(superTypeParameterName, firstSubType, handler(firstSubType));
-    var elseIfs = remainingSubTypeNames
-        .map((e) =>
-            elseIfStatement(superTypeParameterName, e, handler(e)))
+    var firstIf = _ifStatement(
+        baseClassParameterName, firstsubClass, _switcher(firstsubClass));
+    var elseIfs = remainingsubClassNames
+        .map((e) => _elseIfStatement(baseClassParameterName, e, _switcher(e)))
         .join();
 
     return """
-    static Function($superType) ${superTypeParameterName}Switcher<T>($subTypeMethodParameters) {
-      return ($superTypeParameterName) {
+    static Function($baseClass) ${baseClassParameterName}Switcher<T>($subClassMethodParameters) {
+      return ($baseClassParameterName) {
     $firstIf
     $elseIfs
     else {
       throw UnimplementedError(
-          "Unknown class given to switcher: \$$superTypeParameterName. Subtype code generation has done something incorrectly. ");
+          "Unknown class given to switcher: \$$baseClassParameterName. subClass code generation has done something incorrectly. ");
     }
       };
     }
     """;
   }
 
-  String handler(String type) => "${lowerFirstChar(type)}";
+  String _switcher(String type) => "${_lowerFirstChar(type)}";
 
-  String ifStatement(String param, String type, String handler) => """
+  String _ifStatement(String param, String type, String handler) => """
   if($param is $type) {
     return $handler($param);
   }
   """;
 
-  String elseIfStatement(String param, String type, String handler) => """
+  String _elseIfStatement(String param, String type, String handler) => """
   else if($param is $type) {
     return $handler($param);
   }
   """;
 
-  String lowerFirstChar(String e) => e.replaceRange(0, 1, e[0].toLowerCase());
+  String _lowerFirstChar(String e) => e.replaceRange(0, 1, e[0].toLowerCase());
 
-  String generateSwitcherClassWithDefaults(
-      String superType, List<String> subTypeNames) {
-    final String superTypeArgument = lowerFirstChar(superType);
-    final String superTypeSwitcherClass = switcherFunctionName(superType);
-    final String subTypeMethodNames =
-        subTypeNames.map((sub) => subTypeAbstractMethodName(sub)).join(",");
-    final String subTypeMethodDefinitions = subTypeNames.map((sub) {
-      final String subTypeMethodName = subTypeAbstractMethodName(sub);
-      return """T $subTypeMethodName(${sub} $subTypeMethodName){
+  String _generateSwitcherClassWithDefaults(
+      String baseClass, List<String> subClassNames) {
+    final String baseClassArgument = _lowerFirstChar(baseClass);
+    final String baseClassSwitcherClass = _switcherFunctionName(baseClass);
+    final String subClassMethodNames =
+    subClassNames.map((sub) => _subClassAbstractMethodName(sub)).join(",");
+    final String subClassMethodDefinitions = subClassNames.map((sub) {
+      final String subClassMethodName = _subClassAbstractMethodName(sub);
+      return """T $subClassMethodName(${sub} $subClassMethodName){
         return defaultValue();
       }""";
     }).join("\n");
     return """
-    abstract class ${superType}SwitcherWithDefault<T> {
-      T accept$superType($superType $superTypeArgument) {
-        return ${superType}Switcher.${superTypeSwitcherClass}($subTypeMethodNames)($superTypeArgument);
+    abstract class ${baseClass}SwitcherWithDefault<T> {
+      T accept$baseClass($baseClass $baseClassArgument) {
+        return ${baseClass}Switcher.${baseClassSwitcherClass}($subClassMethodNames)($baseClassArgument);
       }
       
       T defaultValue();
        
-      $subTypeMethodDefinitions
+      $subClassMethodDefinitions
     }
     """;
   }
+}
+
+class ClassSwitchGenerator extends Generator {
+  static const TypeChecker ClassSwitchAnnotationTypeChecker =
+      TypeChecker.fromRuntime(ClassSwitch);
+
+  @override
+  FutureOr<String> generate(LibraryReader library, BuildStep buildStep) {
+    return makesubClasss(library);
+  }
+
+  String makesubClasss(LibraryReader library) {
+    var codeElementsAnnotatedWithClassSwitch =
+        library.annotatedWith(ClassSwitchAnnotationTypeChecker);
+    if (codeElementsAnnotatedWithClassSwitch.isEmpty) {
+      return "";
+    }
+    return codeElementsAnnotatedWithClassSwitch
+        .map((e) => ClassSwitchCodeBuilder.fromAnnotation(e.element, library).generateCodeForClassAndSubClasses())
+        .join();
+  }
+
 
 }
