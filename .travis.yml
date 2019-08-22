@@ -14,14 +14,9 @@ jobs:
       env: PKGS="class_switch_client_test"
       script: ./tool/travis.sh command_1 dartfmt dartanalyzer
     - stage: unit_test
-      name: "SDK: 2.3.0; PKGS: class_switch, class_switch; TASKS: `pub run test`"
-      dart: "2.3.0"
-      env: PKGS="class_switch class_switch"
-      script: ./tool/travis.sh command_0
-    - stage: unit_test
-      name: "SDK: stable; PKGS: class_switch, class_switch; TASKS: `pub run test`"
+      name: "SDK: stable; PKG: class_switch; TASKS: `pub run test`"
       dart: stable
-      env: PKGS="class_switch class_switch"
+      env: PKGS="class_switch"
       script: ./tool/travis.sh command_0
     - stage: unit_test
       name: "SDK: stable; PKG: class_switch_client_test; TASKS: `pub run build_runner test --delete-conflicting-outputs`"

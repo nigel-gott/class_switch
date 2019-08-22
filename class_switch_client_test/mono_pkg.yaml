@@ -10,7 +10,9 @@ stages:
           - dartanalyzer: --fatal-warnings --fatal-infos .
         dart: [stable]
   - unit_test:
-      - command: pub run build_runner test --delete-conflicting-outputs
+      - group:
+        - command: pub run build_runner test --delete-conflicting-outputs
+        dart: [stable]
 
 cache:
   directories:
