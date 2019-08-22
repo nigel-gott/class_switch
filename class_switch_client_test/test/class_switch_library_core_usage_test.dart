@@ -1,7 +1,7 @@
 import 'package:class_switch/class_switch.dart';
 import 'package:test/test.dart';
 
-part 'class_switch_client_test.g.dart';
+part 'class_switch_library_core_usage_test.g.dart';
 
 @class_switch
 abstract class Fruit {}
