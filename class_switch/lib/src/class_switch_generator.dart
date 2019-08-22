@@ -9,6 +9,9 @@ class ClassSwitchCodeBuilder {
   final ClassElement _baseClass;
   final List<ClassElement> _subClasses;
 
+  String get _baseClassName => _baseClass.name;
+  List<String> get _subClassNames => _subClasses.map((ClassElement e) => e.name).toList();
+
   factory ClassSwitchCodeBuilder.fromAnnotation(
       Element baseClassElement, LibraryReader libraryReader) {
     if (baseClassElement is ClassElement) {
@@ -26,24 +29,20 @@ class ClassSwitchCodeBuilder {
   ClassSwitchCodeBuilder._withClassElements(this._baseClass, this._subClasses);
 
   String generateCodeForClassAndSubClasses() {
-    final String baseClassName = _baseClass.name;
-    final subClassNames = _subClasses.map((e) => e.name).toList();
     return """
-    ${_generateSwitcherClass(baseClassName, subClassNames)}
-    ${_generateSwitcherClassWithDefaults(baseClassName, subClassNames)}
+    ${_generateSwitcherClass()}
     """;
   }
 
-  String _generateSwitcherClass(
-      String baseClassName, List<String> subClassNames) {
+  String _generateSwitcherClass() {
     final String switcherFunction =
-    _generateSwitcherFunction(baseClassName, subClassNames);
+    _generateSwitcherFunction();
     final String subClassMethodDefinitions =
-    _generateAbstractsubClassMethods(subClassNames);
+    _generateAbstractsubClassMethods();
     final String switcherAcceptFunction =
-    _generateSwitcherAcceptFunction(baseClassName, subClassNames);
+    _generateSwitcherAcceptFunction();
     return """
-    abstract class ${baseClassName}Switcher<T> {
+    abstract class ${_baseClassName}Switcher<T> {
       $switcherFunction
       $switcherAcceptFunction 
        
@@ -52,20 +51,19 @@ class ClassSwitchCodeBuilder {
     """;
   }
 
-  String _generateSwitcherAcceptFunction(
-      String baseClassName, List<String> subClassNames) {
-    final acceptFunctionParameterName = _lowerFirstChar(baseClassName);
+  String _generateSwitcherAcceptFunction() {
+    final acceptFunctionParameterName = _lowerFirstChar(_baseClassName);
     final subClassMethodNamesAsParameterList =
-    subClassNames.map(_subClassAbstractMethodName).join(",");
+    _subClassNames.map(_subClassAbstractMethodName).join(",");
     return """
-      T accept$baseClassName($baseClassName $acceptFunctionParameterName) {
-        return ${_switcherFunctionName(baseClassName)}($subClassMethodNamesAsParameterList)($acceptFunctionParameterName);
+      T accept$_baseClassName($_baseClassName $acceptFunctionParameterName) {
+        return ${_switcherFunctionName()}($subClassMethodNamesAsParameterList)($acceptFunctionParameterName);
       }
     """;
   }
 
-  String _generateAbstractsubClassMethods(List<String> subClassNames) {
-    return subClassNames.map((subClassName) {
+  String _generateAbstractsubClassMethods() {
+    return _subClassNames.map((subClassName) {
       final String methodName = _subClassAbstractMethodName(subClassName);
       final String subClassParameterName = methodName;
       return """T $methodName(${subClassName} $subClassParameterName);""";
@@ -75,26 +73,26 @@ class ClassSwitchCodeBuilder {
   String _subClassAbstractMethodName(String subClassClassName) =>
       _lowerFirstChar(subClassClassName);
 
-  String _switcherFunctionName(String baseClass) =>
-      "${_lowerFirstChar(baseClass)}Switcher";
+  String _switcherFunctionName() =>
+      "${_lowerFirstChar(_baseClassName)}Switcher";
 
-  String _generateSwitcherFunction(String baseClass, List<String> subClassNames) {
+  String _generateSwitcherFunction() {
     final String subClassMethodParameters =
-    subClassNames.map((e) => "T Function($e) ${_switcher(e)}").join(",");
+    _subClassNames.map((e) => "T Function($e) ${_switcher(e)}").join(",");
 
-    final String firstsubClass = subClassNames[0];
-    final List<String> remainingsubClassNames = subClassNames.sublist(1);
+    final String firstsubClass = _subClassNames[0];
+    final List<String> remainingSubClassNames = _subClassNames.sublist(1);
 
-    var baseClassParameterName = _lowerFirstChar(baseClass);
+    var baseClassParameterName = _lowerFirstChar(_baseClassName);
 
     var firstIf = _ifStatement(
         baseClassParameterName, firstsubClass, _switcher(firstsubClass));
-    var elseIfs = remainingsubClassNames
+    var elseIfs = remainingSubClassNames
         .map((e) => _elseIfStatement(baseClassParameterName, e, _switcher(e)))
         .join();
 
     return """
-    static Function($baseClass) ${baseClassParameterName}Switcher<T>($subClassMethodParameters) {
+    static Function($_baseClassName) ${baseClassParameterName}Switcher<T>($subClassMethodParameters) {
       return ($baseClassParameterName) {
     $firstIf
     $elseIfs
@@ -122,31 +120,6 @@ class ClassSwitchCodeBuilder {
   """;
 
   String _lowerFirstChar(String e) => e.replaceRange(0, 1, e[0].toLowerCase());
-
-  String _generateSwitcherClassWithDefaults(
-      String baseClass, List<String> subClassNames) {
-    final String baseClassArgument = _lowerFirstChar(baseClass);
-    final String baseClassSwitcherClass = _switcherFunctionName(baseClass);
-    final String subClassMethodNames =
-    subClassNames.map((sub) => _subClassAbstractMethodName(sub)).join(",");
-    final String subClassMethodDefinitions = subClassNames.map((sub) {
-      final String subClassMethodName = _subClassAbstractMethodName(sub);
-      return """T $subClassMethodName(${sub} $subClassMethodName){
-        return defaultValue();
-      }""";
-    }).join("\n");
-    return """
-    abstract class ${baseClass}SwitcherWithDefault<T> {
-      T accept$baseClass($baseClass $baseClassArgument) {
-        return ${baseClass}Switcher.${baseClassSwitcherClass}($subClassMethodNames)($baseClassArgument);
-      }
-      
-      T defaultValue();
-       
-      $subClassMethodDefinitions
-    }
-    """;
-  }
 }
 
 class ClassSwitchGenerator extends Generator {
@@ -155,12 +128,8 @@ class ClassSwitchGenerator extends Generator {
 
   @override
   FutureOr<String> generate(LibraryReader library, BuildStep buildStep) {
-    return makesubClasss(library);
-  }
-
-  String makesubClasss(LibraryReader library) {
     var codeElementsAnnotatedWithClassSwitch =
-        library.annotatedWith(ClassSwitchAnnotationTypeChecker);
+    library.annotatedWith(ClassSwitchAnnotationTypeChecker);
     if (codeElementsAnnotatedWithClassSwitch.isEmpty) {
       return "";
     }
@@ -168,6 +137,5 @@ class ClassSwitchGenerator extends Generator {
         .map((e) => ClassSwitchCodeBuilder.fromAnnotation(e.element, library).generateCodeForClassAndSubClasses())
         .join();
   }
-
 
 }
