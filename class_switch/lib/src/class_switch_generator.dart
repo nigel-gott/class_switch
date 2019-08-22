@@ -11,8 +11,8 @@ class ClassSwitchGenerator extends Generator {
 
   @override
   FutureOr<String> generate(LibraryReader library, BuildStep buildStep) {
-    var codeElementsAnnotatedWithClassSwitch =
-        library.annotatedWith(ClassSwitchAnnotationTypeChecker);
+    final List<AnnotatedElement> codeElementsAnnotatedWithClassSwitch =
+        library.annotatedWith(ClassSwitchAnnotationTypeChecker).toList();
     if (codeElementsAnnotatedWithClassSwitch.isEmpty) {
       return "";
     }
@@ -126,7 +126,7 @@ class ClassSwitchCodeBuilder {
   }
 
   String _generateSwitcherFunctionBody() {
-    var baseClassParameterName = _lowerFirstChar(_baseClassName) + "Instance";
+    final String baseClassParameterName = _lowerFirstChar(_baseClassName) + "Instance";
     if (_classesAcceptedBySwitcher.isEmpty) {
       throw InvalidGenerationSourceError(
           "Cannot generate a switcher for an abstract class with no sub classes.",
@@ -137,11 +137,13 @@ class ClassSwitchCodeBuilder {
       return """
       return ($baseClassParameterName) {
       ${_generateIfBloc()}
-    else {
-      throw UnimplementedError(
-          "Unknown class given to switcher: \$$baseClassParameterName. subClass code generation has done something incorrectly. ");
+    else if($baseClassParameterName == null){
+      throw ArgumentError("Null parameter passed to switcher.");
+    } else {
+      throw ArgumentError(
+      "Unknown class given to switcher: \$$baseClassParameterName. Have you added a new sub class for $_baseClassName without running pub run build_runner build?. ");
     }
-      };
+    };
     """;
     }
   }
@@ -150,11 +152,11 @@ class ClassSwitchCodeBuilder {
     final String firstSubClass = _classesAcceptedBySwitcher[0];
     final List<String> remainingSubClassNames =
         _classesAcceptedBySwitcher.sublist(1);
-    var baseClassParameterName = _lowerFirstChar(_baseClassName) + "Instance";
+    final String baseClassParameterName = _lowerFirstChar(_baseClassName) + "Instance";
 
-    var firstIf = _ifStatement(
+    final String firstIf = _ifStatement(
         baseClassParameterName, firstSubClass, _classMethodName(firstSubClass));
-    var elseIfs = remainingSubClassNames
+    final String elseIfs = remainingSubClassNames
         .map((e) =>
             _elseIfStatement(baseClassParameterName, e, _classMethodName(e)))
         .join();
