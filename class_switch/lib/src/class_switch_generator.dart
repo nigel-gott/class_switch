@@ -53,19 +53,19 @@ class ClassSwitchCodeBuilder {
   }
 
   String _generateSwitcherAcceptFunction() {
-    final acceptFunctionParameterName = _lowerFirstChar(_baseClassName);
-    final subClassMethodNamesAsParameterList =
-        _subClassNames.map(_subClassAbstractMethodName).join(",");
+    final acceptFunctionParameterName = _lowerFirstChar(_baseClassName) + "Instance";
     return """
       T accept$_baseClassName($_baseClassName $acceptFunctionParameterName) {
-        return ${_withDefault ? _switcherClassName + "." : ""}${_switcherFunctionName()}($subClassMethodNamesAsParameterList)($acceptFunctionParameterName);
+        return ${_withDefault ? _switcherClassName + "." : ""}${_switcherFunctionName()}($_methodParameters)($acceptFunctionParameterName);
       }
     """;
   }
 
+  String get _methodParameters => _classesAcceptedBySwitcher.map(_classMethodName).join(",");
+
   String _generateSubClassMethods() {
-    return _subClassNames.map((subClassName) {
-      final String methodName = _subClassAbstractMethodName(subClassName);
+    return _classesAcceptedBySwitcher.map((subClassName) {
+      final String methodName = _classMethodName(subClassName);
       final String subClassParameterName = methodName;
       if (_withDefault) {
         return """T $methodName(${subClassName} $subClassParameterName){
@@ -77,29 +77,29 @@ class ClassSwitchCodeBuilder {
     }).join("\n");
   }
 
-  String _subClassAbstractMethodName(String subClassClassName) =>
-      _lowerFirstChar(subClassClassName);
+  List<String> get _classesAcceptedBySwitcher => [..._subClassNames, if(!_baseClass.isAbstract) _baseClassName];
+
 
   String _switcherFunctionName() =>
       "${_lowerFirstChar(_baseClassName)}Switcher";
 
   String _generateSwitcherFunction() {
     final String subClassMethodParameters =
-        _subClassNames.map((e) => "T Function($e) ${_switcher(e)}").join(",");
+        _classesAcceptedBySwitcher.map((e) => "T Function($e) ${_classMethodName(e)}").join(",");
 
-    final String firstSubClass = _subClassNames[0];
-    final List<String> remainingSubClassNames = _subClassNames.sublist(1);
+    final String firstSubClass = _classesAcceptedBySwitcher[0];
+    final List<String> remainingSubClassNames = _classesAcceptedBySwitcher.sublist(1);
 
-    var baseClassParameterName = _lowerFirstChar(_baseClassName);
+    var baseClassParameterName = _lowerFirstChar(_baseClassName) + "Instance";
 
     var firstIf = _ifStatement(
-        baseClassParameterName, firstSubClass, _switcher(firstSubClass));
+        baseClassParameterName, firstSubClass, _classMethodName(firstSubClass));
     var elseIfs = remainingSubClassNames
-        .map((e) => _elseIfStatement(baseClassParameterName, e, _switcher(e)))
+        .map((e) => _elseIfStatement(baseClassParameterName, e, _classMethodName(e)))
         .join();
 
     return """
-    static Function($_baseClassName) ${baseClassParameterName}Switcher<T>($subClassMethodParameters) {
+    static T Function($_baseClassName) ${_switcherFunctionName()}<T>($subClassMethodParameters) {
       return ($baseClassParameterName) {
     $firstIf
     $elseIfs
@@ -112,7 +112,7 @@ class ClassSwitchCodeBuilder {
     """;
   }
 
-  String _switcher(String type) => "${_lowerFirstChar(type)}";
+  String _classMethodName(String type) => "${_lowerFirstChar(type)}";
 
   String _ifStatement(String param, String type, String handler) => """
   if($param is $type) {
