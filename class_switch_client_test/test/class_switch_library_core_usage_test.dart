@@ -1,6 +1,5 @@
-import 'package:class_switch/class_switch.dart';
 import 'package:test/test.dart';
-
+import 'package:class_switch_annotation/class_switch_annotation.dart';
 part 'class_switch_library_core_usage_test.g.dart';
 
 @class_switch

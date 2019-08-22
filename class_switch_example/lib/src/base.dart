@@ -1,4 +1,4 @@
-import 'package:class_switch/class_switch.dart';
+import 'package:class_switch_annotation/class_switch_annotation.dart';
 
 part 'base.g.dart';
 

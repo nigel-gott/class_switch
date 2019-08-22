@@ -1,7 +1,8 @@
-import 'package:class_switch/class_switch.dart';
+import 'package:class_switch_annotation/class_switch_annotation.dart';
 import 'package:test/test.dart';
 
 part 'class_switch_library_edge_cases_test.g.dart';
+
 
 // TODO This should be a generator error and not compile!
 //@class_switch
