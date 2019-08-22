@@ -43,7 +43,7 @@ class ClassSwitchCodeBuilder {
 
   factory ClassSwitchCodeBuilder.fromAnnotation(
       Element element, LibraryReader libraryReader, bool withDefault) {
-    if (element is ClassElement) {
+    if (element is ClassElement && !element.isEnum) {
       final List<ClassElement> subClasses = libraryReader.classes
           .where((s) => s.supertype.element == element)
           .toList();
@@ -118,10 +118,38 @@ class ClassSwitchCodeBuilder {
         .map((e) => "T Function($e) ${_classMethodName(e)}")
         .join(",");
 
+    return """
+    static T Function($_baseClassName) ${_switcherFunctionName()}<T>($subClassMethodParameters) {
+    ${_generateSwitcherFunctionBody()}
+    }
+    """;
+  }
+
+  String _generateSwitcherFunctionBody() {
+    var baseClassParameterName = _lowerFirstChar(_baseClassName) + "Instance";
+    if (_classesAcceptedBySwitcher.isEmpty) {
+      throw InvalidGenerationSourceError(
+          "Cannot generate a switcher for an abstract class with no sub classes.",
+          todo:
+              "Remove @class_switch from the offending class or implement sub classes for it.",
+          element: _baseClass);
+    } else {
+      return """
+      return ($baseClassParameterName) {
+      ${_generateIfBloc()}
+    else {
+      throw UnimplementedError(
+          "Unknown class given to switcher: \$$baseClassParameterName. subClass code generation has done something incorrectly. ");
+    }
+      };
+    """;
+    }
+  }
+
+  String _generateIfBloc() {
     final String firstSubClass = _classesAcceptedBySwitcher[0];
     final List<String> remainingSubClassNames =
         _classesAcceptedBySwitcher.sublist(1);
-
     var baseClassParameterName = _lowerFirstChar(_baseClassName) + "Instance";
 
     var firstIf = _ifStatement(
@@ -130,18 +158,9 @@ class ClassSwitchCodeBuilder {
         .map((e) =>
             _elseIfStatement(baseClassParameterName, e, _classMethodName(e)))
         .join();
-
     return """
-    static T Function($_baseClassName) ${_switcherFunctionName()}<T>($subClassMethodParameters) {
-      return ($baseClassParameterName) {
     $firstIf
     $elseIfs
-    else {
-      throw UnimplementedError(
-          "Unknown class given to switcher: \$$baseClassParameterName. subClass code generation has done something incorrectly. ");
-    }
-      };
-    }
     """;
   }
 

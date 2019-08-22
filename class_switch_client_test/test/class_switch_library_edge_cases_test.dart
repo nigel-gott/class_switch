@@ -23,6 +23,9 @@ class SecondSubType extends BaseClass {}
 class FirstSubTypeOfFirstSubType extends FirstSubType {}
 class SecondSubTypeOfFirstSubType extends FirstSubType {}
 
+@class_switch
+class ClassWithNoSubClasses {}
+
 void main() {
   group('Tests showing class_switch library behaviour in edge cases.', (){
     test('Generates an extra handler function for the base class type if it is not abstract.', (){
@@ -43,6 +46,12 @@ void main() {
       expect(func(SecondSubType()), "second");
       expect(func(FirstSubTypeOfFirstSubType()), "first");
       expect(func(SecondSubTypeOfFirstSubType()), "first");
+    });
+    test('Generates with a single dispatcher for the base class when non abstract base class with no sub classes is annotated',(){
+      final function = ClassWithNoSubClassesSwitcher.classWithNoSubClassesSwitcher((classWithNoSubClasses){
+        return 1;
+      });
+      expect(function(ClassWithNoSubClasses()), 1);
     });
   });
 }
