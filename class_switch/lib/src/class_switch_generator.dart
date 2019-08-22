@@ -6,9 +6,8 @@ import 'package:source_gen/source_gen.dart';
 import 'package:class_switch/src/class_switch_base.dart';
 
 class ClassSwitchGenerator extends Generator {
-  bool first = true;
 
-  TypeChecker get subtypeChecker => TypeChecker.fromRuntime(ClassSwitch);
+  static const TypeChecker ClassSwitchAnnotationTypeChecker = TypeChecker.fromRuntime(ClassSwitch);
 
 
   @override
@@ -17,49 +16,90 @@ class ClassSwitchGenerator extends Generator {
   }
 
   String makeSubtypes(LibraryReader library) {
-    var annotatedElements = library.annotatedWith(subtypeChecker);
-    if (annotatedElements.isEmpty) {
+    var codeElementsAnnotatedWithClassSwitch = library.annotatedWith(ClassSwitchAnnotationTypeChecker);
+    if (codeElementsAnnotatedWithClassSwitch.isEmpty) {
       return "";
     }
-    List<ClassElement> classElements =
-        annotatedElements.map((e) => e.element as ClassElement).toList();
+    return codeElementsAnnotatedWithClassSwitch.map((e) => generateCodeForAnnotatedElement(e.element, library)).join();
 
-    return classElements
-        .map((e) => genSubtype(e.name,
-            library.classes.where((s) => s.supertype.element == e).toList()))
-        .join();
   }
 
-  String genSubtype(String superType, List<ClassElement> subTypes) {
-    final handlerClass = generateSwitcherClass(superType, subTypes);
-    final handlerClassWithDefaults =
-        generateHandlerClassWithDefaults(superType, subTypes);
+  String generateCodeForAnnotatedElement(Element e, LibraryReader library) {
+    if(e is ClassElement) {
+      return generateCodeForAnnotatedClassElement(e, library);
+    } else {
+      throw Exception("Only class's can be annotated with @class_switch, incorrectly found $e annotated with it!");
+    }
+  }
+  String generateCodeForAnnotatedClassElement(ClassElement e, LibraryReader library) {
+    return generateCodeForClassAndSubClasses(e, library.classes.where((s) => s.supertype.element == e).toList());
+  }
+
+  String generateCodeForClassAndSubClasses(ClassElement superType, List<ClassElement> subTypes) {
+    final String superTypeName = superType.name;
+    final subTypeNames = subTypes.map((e) => e.name).toList();
     return """
-    $handlerClass
-    $handlerClassWithDefaults
+    ${generateSwitcherClass(superTypeName, subTypeNames)}
+    ${generateSwitcherClassWithDefaults(superTypeName, subTypeNames)}
     """;
   }
 
+  String generateSwitcherClass(String superTypeName, List<String> subTypeNames) {
+    final String switcherFunction = generateSwitcherFunction(superTypeName, subTypeNames);
+    final String subTypeMethodDefinitions = generateAbstractSubTypeMethods(subTypeNames);
+    final String switcherAcceptFunction = generateSwitcherAcceptFunction(superTypeName, subTypeNames);
+    return """
+    abstract class ${superTypeName}Switcher<T> {
+      $switcherFunction
+      $switcherAcceptFunction 
+       
+      $subTypeMethodDefinitions
+    }
+    """;
+  }
+
+  String generateSwitcherAcceptFunction(String superTypeName, List<String> subTypeNames){
+    final acceptFunctionParameterName = lowerFirstChar(superTypeName);
+    final subTypeMethodNamesAsParameterList = subTypeNames.map(subTypeAbstractMethodName).join(",");
+    return """
+      T accept$superTypeName($superTypeName $acceptFunctionParameterName) {
+        return ${switcherFunctionName(superTypeName)}($subTypeMethodNamesAsParameterList)($acceptFunctionParameterName);
+      }
+    """;
+  }
+
+  String generateAbstractSubTypeMethods(List<String> subTypeNames) {
+    return subTypeNames.map((subTypeName) {
+    final String methodName = subTypeAbstractMethodName(subTypeName);
+    final String subTypeParameterName = methodName;
+    return """T $methodName(${subTypeName} $subTypeParameterName);""";
+  }).join("\n");
+  }
+
+  String subTypeAbstractMethodName(String subTypeClassName) => lowerFirstChar(subTypeClassName);
+
+  String switcherFunctionName(String superType) => "${lowerFirstChar(superType)}Switcher";
+
   String generateSwitcherFunction(
-      String superType, List<ClassElement> subTypes) {
-    var arguments = subTypes
-        .map((e) => "T Function(${e.name}) ${handler(e.name)}")
+      String superType, List<String> subTypeNames) {
+    final String subTypeMethodParameters = subTypeNames
+        .map((e) => "T Function($e) ${handler(e)}")
         .join(",");
 
-    var first = subTypes[0];
-    var rest = subTypes.sublist(1);
+    final String firstSubType = subTypeNames[0];
+    final List<String> remainingSubTypeNames = subTypeNames.sublist(1);
 
     var superTypeParameterName = lowerFirstChar(superType);
 
     var firstIf =
-        ifStatement(superTypeParameterName, first.name, handler(first.name));
-    var elseIfs = rest
+        ifStatement(superTypeParameterName, firstSubType, handler(firstSubType));
+    var elseIfs = remainingSubTypeNames
         .map((e) =>
-            elseIfStatement(superTypeParameterName, e.name, handler(e.name)))
+            elseIfStatement(superTypeParameterName, e, handler(e)))
         .join();
 
     return """
-    static Function($superType) ${superTypeParameterName}Switcher<T>($arguments) {
+    static Function($superType) ${superTypeParameterName}Switcher<T>($subTypeMethodParameters) {
       return ($superTypeParameterName) {
     $firstIf
     $elseIfs
@@ -88,37 +128,15 @@ class ClassSwitchGenerator extends Generator {
 
   String lowerFirstChar(String e) => e.replaceRange(0, 1, e[0].toLowerCase());
 
-  String generateSwitcherClass(String superType, List<ClassElement> subTypes) {
-    final switcherFunction = generateSwitcherFunction(superType, subTypes);
-    final superTypeArgument = lowerFirstChar(superType);
-    final superTypeHandlerFunction = "${lowerFirstChar(superType)}Switcher";
-    final subTypeMethodNames =
-        subTypes.map((sub) => lowerFirstChar(sub.name)).join(",");
-    final subTypeMethodDefinitions = subTypes.map((sub) {
-      var lowerSubType = lowerFirstChar(sub.name);
-      return """T $lowerSubType(${sub.name} $lowerSubType);""";
-    }).join("\n");
-    return """
-    abstract class ${superType}Switcher<T> {
-      $switcherFunction
-      T accept$superType($superType $superTypeArgument) {
-        return ${superTypeHandlerFunction}($subTypeMethodNames)($superTypeArgument);
-      }
-       
-      $subTypeMethodDefinitions
-    }
-    """;
-  }
-
-  String generateHandlerClassWithDefaults(
-      String superType, List<ClassElement> subTypes) {
-    final superTypeArgument = lowerFirstChar(superType);
-    final superTypeSwitcherClass = "${lowerFirstChar(superType)}Switcher";
-    final subTypeMethodNames =
-        subTypes.map((sub) => lowerFirstChar(sub.name)).join(",");
-    final subTypeMethodDefinitions = subTypes.map((sub) {
-      var lowerSubType = lowerFirstChar(sub.name);
-      return """T $lowerSubType(${sub.name} $lowerSubType){
+  String generateSwitcherClassWithDefaults(
+      String superType, List<String> subTypeNames) {
+    final String superTypeArgument = lowerFirstChar(superType);
+    final String superTypeSwitcherClass = switcherFunctionName(superType);
+    final String subTypeMethodNames =
+        subTypeNames.map((sub) => subTypeAbstractMethodName(sub)).join(",");
+    final String subTypeMethodDefinitions = subTypeNames.map((sub) {
+      final String subTypeMethodName = subTypeAbstractMethodName(sub);
+      return """T $subTypeMethodName(${sub} $subTypeMethodName){
         return defaultValue();
       }""";
     }).join("\n");
@@ -134,4 +152,5 @@ class ClassSwitchGenerator extends Generator {
     }
     """;
   }
+
 }
