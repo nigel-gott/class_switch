@@ -1,6 +1,5 @@
 travis:
 
 merge_stages:
-  - pre_analyzer
   - analyzer_and_format
   - unit_test

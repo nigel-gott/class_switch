@@ -34,13 +34,9 @@ for PKG in ${PKGS}; do
       echo 'pub run build_runner test --delete-conflicting-outputs'
       pub run build_runner test --delete-conflicting-outputs || EXIT_CODE=$?
       ;;
-    dartanalyzer_0)
+    dartanalyzer)
       echo 'dartanalyzer --fatal-warnings --fatal-infos .'
       dartanalyzer --fatal-warnings --fatal-infos . || EXIT_CODE=$?
-      ;;
-    dartanalyzer_1)
-      echo 'dartanalyzer --fatal-warnings .'
-      dartanalyzer --fatal-warnings . || EXIT_CODE=$?
       ;;
     dartfmt)
       echo 'dartfmt -n --set-exit-if-changed .'

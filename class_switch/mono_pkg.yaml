@@ -9,9 +9,6 @@ stages:
           - dartfmt
           - dartanalyzer: --fatal-warnings --fatal-infos .
         dart: [stable]
-      - group:
-          - dartanalyzer: --fatal-warnings .
-        dart: [2.3.0]
   - unit_test:
       - test
       - command: pub run test

@@ -1,19 +1,14 @@
 # See https://github.com/dart-lang/mono_repo for details
 dart:
-  - 2.3.0
   - stable
 
 stages:
-  - pre_analyzer:
-      - command: pub run build_runner build --delete-conflicting-outputs
   - analyzer_and_format:
       - group:
+          - command: pub run build_runner build --delete-conflicting-outputs
           - dartfmt
           - dartanalyzer: --fatal-warnings --fatal-infos .
         dart: [stable]
-      - group:
-          - dartanalyzer: --fatal-warnings .
-        dart: [2.3.0]
   - unit_test:
       - test
       - command: pub run build_runner test --delete-conflicting-outputs
