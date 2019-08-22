@@ -1,56 +1,32 @@
-//import 'package:class_switch/class_switch.dart';
+import 'package:class_switch/class_switch.dart';
 
 part 'base.g.dart';
 
 main() {
-  print(FruitHandler.fruitHandler((apple) {
+  print(FruitSwitcher.fruitSwitcher((apple) {
     return 1;
   }, (orange) {
     return 2;
   })(Apple()));
 }
 
-class MyFruitHandler extends FruitHandler<int> {
+class MyFruitHandler extends FruitSwitcher<int> {
   @override
   int apple(Apple apple) {
-    // TODO: implement apple
-    return null;
+    return 1;
   }
 
   @override
   int orange(Orange orange) {
-    // TODO: implement orange
-    return null;
+    return 2;
   }
 }
 
-//@Subtype()
-class Fruit {}
+@class_switch
+abstract class Fruit {}
 
 class Apple extends Fruit {
-  int imAnApple() => 1;
 }
 
-//@Subtype()
 class Orange extends Fruit {}
 
-class A extends Orange {}
-
-//@Subtype()
-class X {}
-
-class Y extends X {}
-
-//@CrossSubtype()
-abstract class State {}
-
-class StateA extends State {}
-
-class StateB extends State {}
-
-//@CrossSubtype()
-abstract class Event {}
-
-class EventA extends Event {}
-
-class EventB extends Event {}
