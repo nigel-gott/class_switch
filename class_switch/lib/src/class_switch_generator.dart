@@ -5,6 +5,32 @@ import 'package:build/src/builder/build_step.dart';
 import 'package:source_gen/source_gen.dart';
 import 'package:class_switch_annotation/class_switch_annotation.dart';
 
+class ClassSwitchGenerator extends Generator {
+  static const TypeChecker ClassSwitchAnnotationTypeChecker =
+      TypeChecker.fromRuntime(ClassSwitch);
+
+  @override
+  FutureOr<String> generate(LibraryReader library, BuildStep buildStep) {
+    var codeElementsAnnotatedWithClassSwitch =
+        library.annotatedWith(ClassSwitchAnnotationTypeChecker);
+    if (codeElementsAnnotatedWithClassSwitch.isEmpty) {
+      return "";
+    }
+    return codeElementsAnnotatedWithClassSwitch
+        .map((e) => generateForElement(e.element, library))
+        .join();
+  }
+
+  String generateForElement(Element e, LibraryReader library) {
+    return [
+      ClassSwitchCodeBuilder.fromAnnotation(e, library, true)
+          .generateCodeForClassAndSubClasses(),
+      ClassSwitchCodeBuilder.fromAnnotation(e, library, false)
+          .generateCodeForClassAndSubClasses(),
+    ].join("\n");
+  }
+}
+
 class ClassSwitchCodeBuilder {
   final ClassElement _baseClass;
   final List<ClassElement> _subClasses;
@@ -16,16 +42,18 @@ class ClassSwitchCodeBuilder {
       _subClasses.map((ClassElement e) => e.name).toList();
 
   factory ClassSwitchCodeBuilder.fromAnnotation(
-      Element baseClassElement, LibraryReader libraryReader, bool withDefault) {
-    if (baseClassElement is ClassElement) {
+      Element element, LibraryReader libraryReader, bool withDefault) {
+    if (element is ClassElement) {
       final List<ClassElement> subClasses = libraryReader.classes
-          .where((s) => s.supertype.element == baseClassElement)
+          .where((s) => s.supertype.element == element)
           .toList();
       return ClassSwitchCodeBuilder._withClassElements(
-          baseClassElement, subClasses, withDefault);
+          element, subClasses, withDefault);
     } else {
-      throw Exception(
-          "Only class's can be annotated with @class_switch, incorrectly found $baseClassElement annotated with it!");
+      throw InvalidGenerationSourceError(
+          "@class_switch can only be used to annotate a class.",
+          todo: "Remove @class_switch annotation from the offending element.",
+          element: element);
     }
   }
 
@@ -53,7 +81,8 @@ class ClassSwitchCodeBuilder {
   }
 
   String _generateSwitcherAcceptFunction() {
-    final acceptFunctionParameterName = _lowerFirstChar(_baseClassName) + "Instance";
+    final acceptFunctionParameterName =
+        _lowerFirstChar(_baseClassName) + "Instance";
     return """
       T accept$_baseClassName($_baseClassName $acceptFunctionParameterName) {
         return ${_withDefault ? _switcherClassName + "." : ""}${_switcherFunctionName()}($_methodParameters)($acceptFunctionParameterName);
@@ -61,7 +90,8 @@ class ClassSwitchCodeBuilder {
     """;
   }
 
-  String get _methodParameters => _classesAcceptedBySwitcher.map(_classMethodName).join(",");
+  String get _methodParameters =>
+      _classesAcceptedBySwitcher.map(_classMethodName).join(",");
 
   String _generateSubClassMethods() {
     return _classesAcceptedBySwitcher.map((subClassName) {
@@ -77,25 +107,28 @@ class ClassSwitchCodeBuilder {
     }).join("\n");
   }
 
-  List<String> get _classesAcceptedBySwitcher => [..._subClassNames, if(!_baseClass.isAbstract) _baseClassName];
-
+  List<String> get _classesAcceptedBySwitcher =>
+      [..._subClassNames, if (!_baseClass.isAbstract) _baseClassName];
 
   String _switcherFunctionName() =>
       "${_lowerFirstChar(_baseClassName)}Switcher";
 
   String _generateSwitcherFunction() {
-    final String subClassMethodParameters =
-        _classesAcceptedBySwitcher.map((e) => "T Function($e) ${_classMethodName(e)}").join(",");
+    final String subClassMethodParameters = _classesAcceptedBySwitcher
+        .map((e) => "T Function($e) ${_classMethodName(e)}")
+        .join(",");
 
     final String firstSubClass = _classesAcceptedBySwitcher[0];
-    final List<String> remainingSubClassNames = _classesAcceptedBySwitcher.sublist(1);
+    final List<String> remainingSubClassNames =
+        _classesAcceptedBySwitcher.sublist(1);
 
     var baseClassParameterName = _lowerFirstChar(_baseClassName) + "Instance";
 
     var firstIf = _ifStatement(
         baseClassParameterName, firstSubClass, _classMethodName(firstSubClass));
     var elseIfs = remainingSubClassNames
-        .map((e) => _elseIfStatement(baseClassParameterName, e, _classMethodName(e)))
+        .map((e) =>
+            _elseIfStatement(baseClassParameterName, e, _classMethodName(e)))
         .join();
 
     return """
@@ -130,25 +163,5 @@ class ClassSwitchCodeBuilder {
 
   String _generateDefaultMethod() {
     return "T defaultValue();";
-  }
-}
-
-class ClassSwitchGenerator extends Generator {
-  static const TypeChecker ClassSwitchAnnotationTypeChecker =
-      TypeChecker.fromRuntime(ClassSwitch);
-
-  @override
-  FutureOr<String> generate(LibraryReader library, BuildStep buildStep) {
-    var codeElementsAnnotatedWithClassSwitch =
-        library.annotatedWith(ClassSwitchAnnotationTypeChecker);
-    if (codeElementsAnnotatedWithClassSwitch.isEmpty) {
-      return "";
-    }
-    return codeElementsAnnotatedWithClassSwitch
-        .expand((e) => [
-          ClassSwitchCodeBuilder.fromAnnotation(e.element, library, true).generateCodeForClassAndSubClasses(),
-      ClassSwitchCodeBuilder.fromAnnotation(e.element, library, false).generateCodeForClassAndSubClasses(),
-    ])
-        .join();
   }
 }
