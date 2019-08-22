@@ -11,8 +11,13 @@ import 'package:source_gen_test/src/test_annotated_classes.dart';
 
 Future main() async {
   initializeBuildLogTracking();
-  final reader = await initializeLibraryReaderForDirectory(
-      'test/generated_code_tests', 'invalid_usages_test_src.dart');
+  await testFile('invalid_usages_test_src.dart');
+  await testFile('class_switch_test_src.dart');
+}
+
+Future testFile(String fileName) async {
+  final LibraryReader reader = await initializeLibraryReaderForDirectory(
+      'test/generated_code_tests', fileName);
 
   testAnnotatedElements<ClassSwitch>(
     reader,
