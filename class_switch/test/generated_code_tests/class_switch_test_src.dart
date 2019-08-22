@@ -1,7 +1,8 @@
 import 'package:class_switch_annotation/class_switch_annotation.dart';
 import 'package:source_gen_test/annotations.dart';
 
-@ShouldGenerate(r'''
+@ShouldGenerate(
+    r'''
 abstract class BaseClassSwitcherWithDefault<T> {
   T acceptBaseClass(BaseClass baseClassInstance) {
     return BaseClassSwitcher.baseClassSwitcher(subClassA, subClassB)(
@@ -27,9 +28,11 @@ abstract class BaseClassSwitcher<T> {
         return subClassA(baseClassInstance);
       } else if (baseClassInstance is SubClassB) {
         return subClassB(baseClassInstance);
+      } else if (baseClassInstance == null) {
+        throw ArgumentError("Null parameter passed to switcher.");
       } else {
-        throw UnimplementedError(
-            "Unknown class given to switcher: $baseClassInstance. subClass code generation has done something incorrectly. ");
+        throw ArgumentError(
+            "Unknown class given to switcher: $baseClassInstance. Have you added a new sub class for BaseClass without running pub run build_runner build?. ");
       }
     };
   }
@@ -41,7 +44,8 @@ abstract class BaseClassSwitcher<T> {
   T subClassA(SubClassA subClassA);
   T subClassB(SubClassB subClassB);
 }
-''')
+'''
+)
 @class_switch
 abstract class BaseClass {}
 
