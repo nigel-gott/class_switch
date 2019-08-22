@@ -25,8 +25,6 @@ class MyFruitHandler extends FruitSwitcher<int> {
 @class_switch
 abstract class Fruit {}
 
-class Apple extends Fruit {
-}
+class Apple extends Fruit {}
 
 class Orange extends Fruit {}
-

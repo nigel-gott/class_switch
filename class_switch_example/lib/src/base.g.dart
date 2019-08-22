@@ -42,5 +42,6 @@ abstract class FruitSwitcher<T> {
   }
 
   T apple(Apple apple);
+
   T orange(Orange orange);
 }

@@ -3,11 +3,9 @@ import 'package:build/src/builder/build_step.dart';
 import 'package:class_switch/class_switch.dart';
 import 'package:class_switch_annotation/class_switch_annotation.dart';
 import 'package:source_gen/source_gen.dart';
-
 import 'package:source_gen_test/src/build_log_tracking.dart';
 import 'package:source_gen_test/src/init_library_reader.dart';
 import 'package:source_gen_test/src/test_annotated_classes.dart';
-
 
 Future main() async {
   initializeBuildLogTracking();
@@ -25,12 +23,15 @@ Future testFile(String fileName) async {
   );
 }
 
-class WrappingClassSwitchGeneratorForTest extends GeneratorForAnnotation<ClassSwitch>{
+class WrappingClassSwitchGeneratorForTest
+    extends GeneratorForAnnotation<ClassSwitch> {
   final LibraryReader _libraryReader;
 
   WrappingClassSwitchGeneratorForTest(this._libraryReader);
+
   @override
-  generateForAnnotatedElement(Element element, ConstantReader annotation, BuildStep buildStep) {
+  generateForAnnotatedElement(
+      Element element, ConstantReader annotation, BuildStep buildStep) {
     return ClassSwitchGenerator().generateForElement(element, _libraryReader);
   }
 }
