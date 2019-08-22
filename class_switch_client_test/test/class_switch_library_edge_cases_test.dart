@@ -22,10 +22,6 @@ class SecondSubType extends BaseClass {}
 class FirstSubTypeOfFirstSubType extends FirstSubType {}
 class SecondSubTypeOfFirstSubType extends FirstSubType {}
 
-
-
-
-
 void main() {
   group('Tests showing class_switch library behaviour in edge cases.', (){
     test('Generates an extra handler function for the base class type if it is not abstract.', (){
