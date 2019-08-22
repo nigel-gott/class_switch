@@ -4,8 +4,8 @@ language: dart
 jobs:
   include:
     - stage: pre_analyzer
-      name: "SDK: 2.2.2; PKG: class_switch_client_test; TASKS: `pub run build_runner build --delete-conflicting-outputs`"
-      dart: "2.2.2"
+      name: "SDK: 2.3.0; PKG: class_switch_client_test; TASKS: `pub run build_runner build --delete-conflicting-outputs`"
+      dart: "2.3.0"
       env: PKGS="class_switch_client_test"
       script: ./tool/travis.sh command_1
     - stage: pre_analyzer
@@ -19,18 +19,18 @@ jobs:
       env: PKGS="class_switch class_switch_annotation class_switch_client_test class_switch_example"
       script: ./tool/travis.sh dartfmt dartanalyzer_0
     - stage: analyzer_and_format
-      name: "SDK: 2.2.2; PKGS: class_switch, class_switch_client_test; TASKS: `dartanalyzer --fatal-warnings .`"
-      dart: "2.2.2"
+      name: "SDK: 2.3.0; PKGS: class_switch, class_switch_client_test; TASKS: `dartanalyzer --fatal-warnings .`"
+      dart: "2.3.0"
       env: PKGS="class_switch class_switch_client_test"
       script: ./tool/travis.sh dartanalyzer_1
     - stage: analyzer_and_format
-      name: "SDK: 2.2.2; PKGS: class_switch_annotation, class_switch_example; TASKS: [`dartfmt -n --set-exit-if-changed .`, `dartanalyzer --fatal-warnings .`]"
-      dart: "2.2.2"
+      name: "SDK: 2.3.0; PKGS: class_switch_annotation, class_switch_example; TASKS: [`dartfmt -n --set-exit-if-changed .`, `dartanalyzer --fatal-warnings .`]"
+      dart: "2.3.0"
       env: PKGS="class_switch_annotation class_switch_example"
       script: ./tool/travis.sh dartfmt dartanalyzer_1
     - stage: unit_test
-      name: "SDK: 2.2.2; PKGS: class_switch, class_switch, class_switch_client_test; TASKS: `pub run test`"
-      dart: "2.2.2"
+      name: "SDK: 2.3.0; PKGS: class_switch, class_switch, class_switch_client_test; TASKS: `pub run test`"
+      dart: "2.3.0"
       env: PKGS="class_switch class_switch class_switch_client_test"
       script: ./tool/travis.sh command_0
     - stage: unit_test
@@ -39,8 +39,8 @@ jobs:
       env: PKGS="class_switch class_switch class_switch_client_test"
       script: ./tool/travis.sh command_0
     - stage: unit_test
-      name: "SDK: 2.2.2; PKG: class_switch_client_test; TASKS: `pub run build_runner test --delete-conflicting-outputs`"
-      dart: "2.2.2"
+      name: "SDK: 2.3.0; PKG: class_switch_client_test; TASKS: `pub run build_runner test --delete-conflicting-outputs`"
+      dart: "2.3.0"
       env: PKGS="class_switch_client_test"
       script: ./tool/travis.sh command_2
     - stage: unit_test
