@@ -3,10 +3,6 @@ import 'package:test/test.dart';
 
 part 'class_switch_library_edge_cases_test.g.dart';
 
-// TODO This should be a generator error and not compile!
-//@class_switch
-//class ClassWithNoSubClasses{}
-
 @class_switch
 class NonAbstractBaseClass {}
 
