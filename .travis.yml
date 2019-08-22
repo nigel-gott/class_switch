@@ -3,6 +3,16 @@ language: dart
 
 jobs:
   include:
+    - stage: pre_analyzer
+      name: "SDK: 2.2.2; PKG: class_switch_client_test; TASKS: `pub run build_runner build --delete-conflicting-outputs`"
+      dart: "2.2.2"
+      env: PKGS="class_switch_client_test"
+      script: ./tool/travis.sh command_1
+    - stage: pre_analyzer
+      name: "SDK: stable; PKG: class_switch_client_test; TASKS: `pub run build_runner build --delete-conflicting-outputs`"
+      dart: stable
+      env: PKGS="class_switch_client_test"
+      script: ./tool/travis.sh command_1
     - stage: analyzer_and_format
       name: "SDK: stable; PKGS: class_switch, class_switch_annotation, class_switch_client_test, class_switch_example; TASKS: [`dartfmt -n --set-exit-if-changed .`, `dartanalyzer --fatal-warnings --fatal-infos .`]"
       dart: stable
@@ -18,16 +28,6 @@ jobs:
       dart: "2.2.2"
       env: PKGS="class_switch_annotation class_switch_example"
       script: ./tool/travis.sh dartfmt dartanalyzer_1
-    - stage: analyzer_and_format
-      name: "SDK: 2.2.2; PKG: class_switch_client_test; TASKS: `pub run build_runner build --delete-conflicting-outputs`"
-      dart: "2.2.2"
-      env: PKGS="class_switch_client_test"
-      script: ./tool/travis.sh command_1
-    - stage: analyzer_and_format
-      name: "SDK: stable; PKG: class_switch_client_test; TASKS: `pub run build_runner build --delete-conflicting-outputs`"
-      dart: stable
-      env: PKGS="class_switch_client_test"
-      script: ./tool/travis.sh command_1
     - stage: unit_test
       name: "SDK: 2.2.2; PKGS: class_switch, class_switch, class_switch_client_test; TASKS: `pub run test`"
       dart: "2.2.2"
@@ -50,6 +50,7 @@ jobs:
       script: ./tool/travis.sh command_2
 
 stages:
+  - pre_analyzer
   - analyzer_and_format
   - unit_test
 

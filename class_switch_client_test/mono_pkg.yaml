@@ -4,8 +4,9 @@ dart:
   - stable
 
 stages:
-  - analyzer_and_format:
+  - pre_analyzer:
       - command: pub run build_runner build --delete-conflicting-outputs
+  - analyzer_and_format:
       - group:
           - dartfmt
           - dartanalyzer: --fatal-warnings --fatal-infos .
