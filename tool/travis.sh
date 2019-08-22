@@ -27,6 +27,10 @@ for PKG in ${PKGS}; do
       pub run test || EXIT_CODE=$?
       ;;
     command_1)
+      echo 'pub run build_runner build --delete-conflicting-outputs'
+      pub run build_runner build --delete-conflicting-outputs || EXIT_CODE=$?
+      ;;
+    command_2)
       echo 'pub run build_runner test --delete-conflicting-outputs'
       pub run build_runner test --delete-conflicting-outputs || EXIT_CODE=$?
       ;;
