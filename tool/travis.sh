@@ -23,16 +23,16 @@ for PKG in ${PKGS}; do
     echo -e "\033[1mPKG: ${PKG}; TASK: ${TASK}\033[22m"
     case ${TASK} in
     command_0)
-      echo 'pub run test'
-      pub run test || EXIT_CODE=$?
-      ;;
-    command_1)
       echo 'pub run build_runner build --delete-conflicting-outputs'
       pub run build_runner build --delete-conflicting-outputs || EXIT_CODE=$?
       ;;
-    command_2)
+    command_1)
       echo 'pub run build_runner test --delete-conflicting-outputs'
       pub run build_runner test --delete-conflicting-outputs || EXIT_CODE=$?
+      ;;
+    command_2)
+      echo 'pub run test'
+      pub run test || EXIT_CODE=$?
       ;;
     dartanalyzer)
       echo 'dartanalyzer --fatal-warnings --fatal-infos .'
