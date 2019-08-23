@@ -1,8 +1,7 @@
 import 'package:class_switch_annotation/class_switch_annotation.dart';
 import 'package:source_gen_test/annotations.dart';
 
-@ShouldGenerate(
-    r'''
+@ShouldGenerate(r'''
 abstract class BaseClassSwitcherWithDefault<T> {
   T acceptBaseClass(BaseClass baseClassInstance) {
     return BaseClassSwitcher.baseClassSwitcher(subClassA, subClassB)(
@@ -44,8 +43,7 @@ abstract class BaseClassSwitcher<T> {
   T subClassA(SubClassA subClassA);
   T subClassB(SubClassB subClassB);
 }
-'''
-)
+''')
 @class_switch
 abstract class BaseClass {}
 

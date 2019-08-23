@@ -126,7 +126,8 @@ class ClassSwitchCodeBuilder {
   }
 
   String _generateSwitcherFunctionBody() {
-    final String baseClassParameterName = _lowerFirstChar(_baseClassName) + "Instance";
+    final String baseClassParameterName =
+        _lowerFirstChar(_baseClassName) + "Instance";
     if (_classesAcceptedBySwitcher.isEmpty) {
       throw InvalidGenerationSourceError(
           "Cannot generate a switcher for an abstract class with no sub classes.",
@@ -152,7 +153,8 @@ class ClassSwitchCodeBuilder {
     final String firstSubClass = _classesAcceptedBySwitcher[0];
     final List<String> remainingSubClassNames =
         _classesAcceptedBySwitcher.sublist(1);
-    final String baseClassParameterName = _lowerFirstChar(_baseClassName) + "Instance";
+    final String baseClassParameterName =
+        _lowerFirstChar(_baseClassName) + "Instance";
 
     final String firstIf = _ifStatement(
         baseClassParameterName, firstSubClass, _classMethodName(firstSubClass));

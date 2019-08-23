@@ -11,7 +11,7 @@ stages:
         dart: [stable]
   - unit_test:
       - group:
-        - command: pub run test
+          - command: pub run test
         dart: [stable]
 
 cache:

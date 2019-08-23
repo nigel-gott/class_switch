@@ -76,8 +76,12 @@ void main() {
         expect(fruitDispatchFunction(Pear()), 2);
         expect(fruitDispatchFunction(Orange()), 3);
       });
-      test('Argument Error thrown when a null value is passed to the accept function', (){
-        final Matcher anArgumentError = throwsA(predicate((e) => e is ArgumentError && e.message == "Null parameter passed to switcher."));
+      test(
+          'Argument Error thrown when a null value is passed to the accept function',
+          () {
+        final Matcher anArgumentError = throwsA(predicate((e) =>
+            e is ArgumentError &&
+            e.message == "Null parameter passed to switcher."));
         expect(() => FruitNamer().acceptFruit(null), anArgumentError);
         expect(() => IsAnAppleChecker().acceptFruit(null), anArgumentError);
         expect(() => aSwitchFunction()(null), anArgumentError);
@@ -86,7 +90,7 @@ void main() {
   });
 }
 
-int Function(Fruit) aSwitchFunction(){
+int Function(Fruit) aSwitchFunction() {
   return FruitSwitcher.fruitSwitcher<int>((Apple apple) {
     return 1;
   }, (Pear pear) {
