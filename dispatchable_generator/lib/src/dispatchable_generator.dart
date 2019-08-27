@@ -14,20 +14,16 @@ class DispatchableGenerator extends Generator {
   FutureOr<String> generate(LibraryReader library, BuildStep buildStep) {
     final List<AnnotatedElement> codeElementsAnnotatedWithDispatchable =
         library.annotatedWith(DispatchableAnnotationTypeChecker).toList();
-    if (codeElementsAnnotatedWithDispatchable.isEmpty) {
-      return "";
-    }
     return codeElementsAnnotatedWithDispatchable
         .map((e) => generateForElement(e.element, library))
         .join();
   }
 
   String generateForElement(Element e, LibraryReader library) {
+    DispatchableCodeBuilder dispatchableCodeBuilder = DispatchableCodeBuilder.fromAnnotation(e, library);
     return [
-      DispatchableCodeBuilder.fromAnnotation(e, library, true)
-          .generateCodeForClassAndSubClasses(),
-      DispatchableCodeBuilder.fromAnnotation(e, library, false)
-          .generateCodeForClassAndSubClasses(),
+      dispatchableCodeBuilder.generateDispatcherClass(),
+      dispatchableCodeBuilder.generateDefaultDispatcherClass(),
     ].join("\n");
   }
 }
@@ -35,7 +31,6 @@ class DispatchableGenerator extends Generator {
 class DispatchableCodeBuilder {
   final ClassElement _baseClass;
   final List<ClassElement> _subClasses;
-  final bool _withDefault;
 
   String get _baseClassName => _baseClass.name;
 
@@ -43,13 +38,11 @@ class DispatchableCodeBuilder {
       _subClasses.map((ClassElement e) => e.name).toList();
 
   factory DispatchableCodeBuilder.fromAnnotation(
-      Element element, LibraryReader libraryReader, bool withDefault) {
+      Element element, LibraryReader libraryReader) {
     if (element is ClassElement && !element.isEnum) {
-      final List<ClassElement> subClasses = libraryReader.classes
-          .where((s) => s.supertype.element == element)
-          .toList();
+      final List<ClassElement> subClasses = findAllSubClassesInFile(libraryReader, element);
       return DispatchableCodeBuilder._withClassElements(
-          element, subClasses, withDefault);
+          element, subClasses);
     } else {
       throw InvalidGenerationSourceError(
           "@dispatchable can only be used to annotate a class.",
@@ -58,38 +51,46 @@ class DispatchableCodeBuilder {
     }
   }
 
+  static List<ClassElement> findAllSubClassesInFile(LibraryReader libraryReader, ClassElement element) {
+    return libraryReader.classes
+        .where((s) => s.supertype.element == element)
+        .toList();
+  }
+
   DispatchableCodeBuilder._withClassElements(
-      this._baseClass, this._subClasses, this._withDefault);
+      this._baseClass, this._subClasses);
 
   get _dispatchableClassName => _baseClassName + "Dispatcher";
 
-  String generateCodeForClassAndSubClasses() {
-    return """
-    ${_generateDispatcherClass()}
-    """;
+  String generateDispatcherClass() {
+    return _generateDispatcherClass(true);
   }
 
-  String _generateDispatcherClass() {
+  String generateDefaultDispatcherClass() {
+    return _generateDispatcherClass(false);
+  }
+
+  String _generateDispatcherClass(bool withDefault) {
     String className =
-        _dispatchableClassName + (_withDefault ? "WithDefault" : "");
+        _dispatchableClassName + (withDefault ? "WithDefault" : "");
     ClassBuilder classBuilder = ClassBuilder(className);
     _addAcceptMethod(classBuilder);
-    if (_withDefault) {
+    if (withDefault) {
       _addAbstractDefaultMethod(classBuilder);
     } else {
       _addStaticDispatchMethod(classBuilder);
     }
-    _addSubClassMethods(classBuilder);
+    _addSubClassMethods(withDefault, classBuilder);
     return classBuilder.build();
   }
 
-  void _addSubClassMethods(ClassBuilder classBuilder) {
+  void _addSubClassMethods(bool withDefault, ClassBuilder classBuilder) {
     _classesAcceptedByDispatcher.forEach((subClassName) {
       String methodName = _classMethodName(subClassName);
       MethodBuilder builder = classBuilder.addMethod(methodName)
         ..withParameter("$subClassName $methodName")
         ..andReturns("T");
-      if(_withDefault){
+      if(withDefault){
         builder.withBody("return defaultValue();");
       } else {
         builder.whichIsAbstract();
