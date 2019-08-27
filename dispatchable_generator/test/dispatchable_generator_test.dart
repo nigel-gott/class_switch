@@ -10,7 +10,7 @@ import 'package:source_gen_test/src/test_annotated_classes.dart';
 Future main() async {
   initializeBuildLogTracking();
   await testFile('invalid_usages_test_src.dart');
-  await testFile('dispatchable_test_src.dart');
+  await testFile('dispatchable_generator_test_src.dart');
 }
 
 Future testFile(String fileName) async {
