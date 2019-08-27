@@ -5,6 +5,7 @@ import 'package:build/src/builder/build_step.dart';
 import 'package:dispatchable_annotation/dispatchable_annotation.dart';
 import 'package:optional/optional.dart';
 import 'package:source_gen/source_gen.dart';
+import 'package:meta/meta.dart';
 
 class DispatchableGenerator extends Generator {
   static const TypeChecker DispatchableAnnotationTypeChecker =
@@ -19,6 +20,7 @@ class DispatchableGenerator extends Generator {
         .join();
   }
 
+  @visibleForTesting
   String generateForElement(Element e, LibraryReader library) {
     DispatchableCodeBuilder dispatchableCodeBuilder = DispatchableCodeBuilder.fromAnnotation(e, library);
     return [
@@ -33,9 +35,15 @@ class DispatchableCodeBuilder {
   final List<ClassElement> _subClasses;
 
   String get _baseClassName => _baseClass.name;
-
+  String get _dispatchableClassName => _baseClassName + "Dispatcher";
   List<String> get _subClassNames =>
       _subClasses.map((ClassElement e) => e.name).toList();
+  String get _methodParameters =>
+      _classesAcceptedByDispatcher.map(_classMethodName).join(",");
+  List<String> get _classesAcceptedByDispatcher =>
+      [..._subClassNames, if (!_baseClass.isAbstract) _baseClassName];
+  String get _dispatchableFunctionName =>
+      "${_lowerFirstChar(_baseClassName)}Dispatcher";
 
   factory DispatchableCodeBuilder.fromAnnotation(
       Element element, LibraryReader libraryReader) {
@@ -60,7 +68,6 @@ class DispatchableCodeBuilder {
   DispatchableCodeBuilder._withClassElements(
       this._baseClass, this._subClasses);
 
-  get _dispatchableClassName => _baseClassName + "Dispatcher";
 
   String generateDispatcherClass() {
     return _generateDispatcherClass(true);
@@ -109,13 +116,13 @@ class DispatchableCodeBuilder {
         _lowerFirstChar(_baseClassName) + "Instance";
     classBuilder.addMethod("accept$_baseClassName")
       ..withParameter("$_baseClassName $acceptFunctionParameterName")
-      ..withBody("return $_dispatchableClassName.${_dispatchableFunctionName()}($_methodParameters)($acceptFunctionParameterName);")
+      ..withBody("return $_dispatchableClassName.$_dispatchableFunctionName($_methodParameters)($acceptFunctionParameterName);")
 
       ..andReturns("T");
   }
 
   void _addStaticDispatchMethod(ClassBuilder classBuilder) {
-    classBuilder.addMethod(_dispatchableFunctionName())
+    classBuilder.addMethod(_dispatchableFunctionName)
       ..whichIsStatic()
       ..whichHasATemplateParameter("T")
       ..withParameters(_classesAcceptedByDispatcher
@@ -123,18 +130,6 @@ class DispatchableCodeBuilder {
       ..withBody(_generateDispatcherFunctionBody())
       ..andReturns("T Function($_baseClassName)");
   }
-
-
-
-  String get _methodParameters =>
-      _classesAcceptedByDispatcher.map(_classMethodName).join(",");
-
-
-  List<String> get _classesAcceptedByDispatcher =>
-      [..._subClassNames, if (!_baseClass.isAbstract) _baseClassName];
-
-  String _dispatchableFunctionName() =>
-      "${_lowerFirstChar(_baseClassName)}Dispatcher";
 
   String _generateDispatcherFunctionBody() {
     final String baseClassParameterName =
