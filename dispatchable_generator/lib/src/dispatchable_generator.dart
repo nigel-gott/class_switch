@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:build/src/builder/build_step.dart';
 import 'package:dispatchable_annotation/dispatchable_annotation.dart';
+import 'package:optional/optional.dart';
 import 'package:source_gen/source_gen.dart';
 
 class DispatchableGenerator extends Generator {
@@ -69,61 +70,70 @@ class DispatchableCodeBuilder {
   }
 
   String _generateDispatcherClass() {
-    return """
-    abstract class ${_dispatchableClassName}${_withDefault ? "WithDefault" : ""}<T> {
-      ${_withDefault ? "" : _generateDispatcherFunction()}
-      ${_generateDispatcherAcceptFunction()} 
-      ${_withDefault ? _generateDefaultMethod() : ""}
-       
-      ${_generateSubClassMethods()}
+    String className =
+        _dispatchableClassName + (_withDefault ? "WithDefault" : "");
+    ClassBuilder classBuilder = ClassBuilder(className);
+    _addAcceptMethod(classBuilder);
+    if (_withDefault) {
+      _addAbstractDefaultMethod(classBuilder);
+    } else {
+      _addStaticDispatchMethod(classBuilder);
     }
-    """;
+    _addSubClassMethods(classBuilder);
+    return classBuilder.build();
   }
 
-  String _generateDispatcherAcceptFunction() {
-    final acceptFunctionParameterName =
-        _lowerFirstChar(_baseClassName) + "Instance";
-    return """
-      T accept$_baseClassName($_baseClassName $acceptFunctionParameterName) {
-        return ${_withDefault ? _dispatchableClassName + "." : ""}${_dispatchableFunctionName()}($_methodParameters)($acceptFunctionParameterName);
+  void _addSubClassMethods(ClassBuilder classBuilder) {
+    _classesAcceptedByDispatcher.forEach((subClassName) {
+      String methodName = _classMethodName(subClassName);
+      MethodBuilder builder = classBuilder.addMethod(methodName)
+        ..withParameter("$subClassName $methodName")
+        ..andReturns("T");
+      if(_withDefault){
+        builder.withBody("return defaultValue();");
+      } else {
+        builder.whichIsAbstract();
       }
-    """;
+    });
   }
+
+  void _addAbstractDefaultMethod(ClassBuilder classBuilder) {
+    classBuilder.addMethod("defaultValue")
+      ..whichIsAbstract()
+      ..andReturns("T");
+  }
+
+  void _addAcceptMethod(ClassBuilder classBuilder) {
+    String acceptFunctionParameterName =
+        _lowerFirstChar(_baseClassName) + "Instance";
+    classBuilder.addMethod("accept$_baseClassName")
+      ..withParameter("$_baseClassName $acceptFunctionParameterName")
+      ..withBody("return $_dispatchableClassName.${_dispatchableFunctionName()}($_methodParameters)($acceptFunctionParameterName);")
+
+      ..andReturns("T");
+  }
+
+  void _addStaticDispatchMethod(ClassBuilder classBuilder) {
+    classBuilder.addMethod(_dispatchableFunctionName())
+      ..whichIsStatic()
+      ..whichHasATemplateParameter("T")
+      ..withParameters(_classesAcceptedByDispatcher
+          .map((e) => "T Function($e) ${_classMethodName(e)}"))
+      ..withBody(_generateDispatcherFunctionBody())
+      ..andReturns("T Function($_baseClassName)");
+  }
+
+
 
   String get _methodParameters =>
       _classesAcceptedByDispatcher.map(_classMethodName).join(",");
 
-  String _generateSubClassMethods() {
-    return _classesAcceptedByDispatcher.map((subClassName) {
-      final String methodName = _classMethodName(subClassName);
-      final String subClassParameterName = methodName;
-      if (_withDefault) {
-        return """T $methodName(${subClassName} $subClassParameterName){
-        return defaultValue();
-      }""";
-      } else {
-        return """T $methodName(${subClassName} $subClassParameterName);""";
-      }
-    }).join("\n");
-  }
 
   List<String> get _classesAcceptedByDispatcher =>
       [..._subClassNames, if (!_baseClass.isAbstract) _baseClassName];
 
   String _dispatchableFunctionName() =>
       "${_lowerFirstChar(_baseClassName)}Dispatcher";
-
-  String _generateDispatcherFunction() {
-    final String subClassMethodParameters = _classesAcceptedByDispatcher
-        .map((e) => "T Function($e) ${_classMethodName(e)}")
-        .join(",");
-
-    return """
-    static T Function($_baseClassName) ${_dispatchableFunctionName()}<T>($subClassMethodParameters) {
-    ${_generateDispatcherFunctionBody()}
-    }
-    """;
-  }
 
   String _generateDispatcherFunctionBody() {
     final String baseClassParameterName =
@@ -184,7 +194,82 @@ class DispatchableCodeBuilder {
 
   String _lowerFirstChar(String e) => e.replaceRange(0, 1, e[0].toLowerCase());
 
-  String _generateDefaultMethod() {
-    return "T defaultValue();";
+}
+
+class ClassBuilder {
+  final String _className;
+  final List<MethodBuilder> _methods = [];
+
+  ClassBuilder(this._className);
+
+  String build() {
+    return """
+    abstract class $_className<T> {
+    ${_methods.map((f) => f.build()).join("\n")}
+    }
+    """;
+  }
+
+  MethodBuilder addMethod(String methodName) {
+    MethodBuilder builder = MethodBuilder(methodName);
+    _methods.add(builder);
+    return builder;
+  }
+}
+
+class MethodBuilder {
+  final String _methodName;
+  final List<String> _parameters = [];
+  bool _static = false;
+  Optional<String> _templateArgumentName = Optional.empty();
+  bool _abstract = false;
+  String _returnType = "void";
+  String _body = "";
+
+  MethodBuilder(this._methodName);
+
+  String build() {
+    String typeParameter = _templateArgumentName.map((t) => "<$t>").orElse("");
+    String methodWithoutBody =
+        "${_static ? "static" : ""} $_returnType $_methodName${typeParameter}(${_parameters.join(",")})";
+    if (_abstract) {
+      return methodWithoutBody + ";";
+    } else {
+      return """$methodWithoutBody {
+$_body
+}""";
+    }
+  }
+
+  void whichIsAbstract() {
+    _abstract = true;
+  }
+
+  void andReturns(String returnType) {
+    _returnType = returnType;
+  }
+
+  void whichHasATemplateParameter(String _templateArgument) {
+    _templateArgumentName = Optional.of(_templateArgument);
+  }
+
+  void withParameters(Iterable<String> parameters) {
+    _parameters.addAll(parameters);
+  }
+
+  void withBody(String body) {
+    _body = body;
+  }
+
+  void whichIsStatic() {
+    _static = true;
+  }
+
+  void withParameter(String parameter) {
+    _parameters.add(parameter);
+  }
+
+  void whichIsAbstractIf(bool abstract) {
+    _abstract = abstract;
   }
 }
