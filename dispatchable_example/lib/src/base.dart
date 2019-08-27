@@ -10,13 +10,15 @@ class Apple extends Fruit {}
 class Orange extends Fruit {}
 
 main() {
-  assert (FruitDispatcher.fruitDispatcher((apple) {
-    return 1;
-  }, (orange) {
-    return 2;
-  })(Apple()) == 1);
+  assert(FruitDispatcher.fruitDispatcher((apple) {
+        return 1;
+      }, (orange) {
+        return 2;
+      })(Apple()) ==
+      1);
   assert(MyFruitHandler().acceptFruit(Orange()) == 2);
-  assert(MyFruitHandlerWithADefault().acceptFruit(Orange()) == "orange is special");
+  assert(MyFruitHandlerWithADefault().acceptFruit(Orange()) ==
+      "orange is special");
 }
 
 class MyFruitHandler extends FruitDispatcher<int> {
@@ -31,7 +33,7 @@ class MyFruitHandler extends FruitDispatcher<int> {
   }
 }
 
-class MyFruitHandlerWithADefault extends FruitDispatcherWithDefault<String>{
+class MyFruitHandlerWithADefault extends FruitDispatcherWithDefault<String> {
   @override
   String defaultValue() {
     return "default";
@@ -41,6 +43,4 @@ class MyFruitHandlerWithADefault extends FruitDispatcherWithDefault<String>{
   String orange(Orange orange) {
     return "orange is special";
   }
-
 }
-
