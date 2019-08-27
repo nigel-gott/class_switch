@@ -14,7 +14,8 @@ class DispatchableGenerator extends Generator {
 
   @override
   FutureOr<String> generate(LibraryReader library, BuildStep buildStep) {
-    return library.annotatedWith(_DispatchableAnnotationTypeChecker)
+    return library
+        .annotatedWith(_DispatchableAnnotationTypeChecker)
         .map((e) => generateForElement(e.element, library))
         .join();
   }
@@ -22,8 +23,10 @@ class DispatchableGenerator extends Generator {
   @visibleForTesting
   String generateForElement(Element element, LibraryReader library) {
     _validateElement(element);
-    List<ClassElement> subClasses = DispatchableGenerator._findAllSubClassesInFile(library, element);
-    DispatchableClassGenerator dispatchableCodeBuilder = DispatchableClassGenerator.validateAndCreate(element, subClasses);
+    List<ClassElement> subClasses =
+        DispatchableGenerator._findAllSubClassesInFile(library, element);
+    DispatchableClassGenerator dispatchableCodeBuilder =
+        DispatchableClassGenerator.validateAndCreate(element, subClasses);
     return [
       dispatchableCodeBuilder.generateDispatcherClass(),
       dispatchableCodeBuilder.generateDefaultDispatcherClass(),
@@ -46,5 +49,3 @@ class DispatchableGenerator extends Generator {
         .toList();
   }
 }
-
-

@@ -1,8 +1,7 @@
 import 'package:dispatchable_annotation/dispatchable_annotation.dart';
 import 'package:source_gen_test/annotations.dart';
 
-@ShouldGenerate(
-r'''
+@ShouldGenerate(r'''
 abstract class BaseClassDispatcherWithDefault<T> {
   T acceptBaseClass(BaseClass baseClassInstance) {
     return BaseClassDispatcher.baseClassDispatcher(subClassA, subClassB)(

@@ -6,7 +6,7 @@ targets:
 builders:
   dispatchable:
     import: "package:dispatchable_generator/builder.dart"
-    builder_factories: ["typeHandler"]
+    builder_factories: ["dispatchable"]
     build_extensions: {".dart": [".dispatchable.g.part"]}
     auto_apply: dependents
     build_to: cache

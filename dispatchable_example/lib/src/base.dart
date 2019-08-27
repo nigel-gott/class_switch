@@ -2,12 +2,21 @@ import 'package:dispatchable_annotation/dispatchable_annotation.dart';
 
 part 'base.g.dart';
 
+@dispatchable
+abstract class Fruit {}
+
+class Apple extends Fruit {}
+
+class Orange extends Fruit {}
+
 main() {
-  print(FruitDispatcher.fruitDispatcher((apple) {
+  assert (FruitDispatcher.fruitDispatcher((apple) {
     return 1;
   }, (orange) {
     return 2;
-  })(Apple()));
+  })(Apple()) == 1);
+  assert(MyFruitHandler().acceptFruit(Orange()) == 2);
+  assert(MyFruitHandlerWithADefault().acceptFruit(Orange()) == "orange is special");
 }
 
 class MyFruitHandler extends FruitDispatcher<int> {
@@ -22,9 +31,16 @@ class MyFruitHandler extends FruitDispatcher<int> {
   }
 }
 
-@dispatchable
-abstract class Fruit {}
+class MyFruitHandlerWithADefault extends FruitDispatcherWithDefault<String>{
+  @override
+  String defaultValue() {
+    return "default";
+  }
 
-class Apple extends Fruit {}
+  @override
+  String orange(Orange orange) {
+    return "orange is special";
+  }
 
-class Orange extends Fruit {}
+}
+

@@ -1,4 +1,3 @@
-
 import 'package:optional/optional.dart';
 
 class ClassBuilder {

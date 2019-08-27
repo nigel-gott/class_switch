@@ -9,24 +9,25 @@ class DispatchableClassGenerator {
 
   String get _dispatchableClassName => _baseClassName + "Dispatcher";
 
-
   String get _dispatchableStaticFunctionName =>
       "${_lowerFirstChar(_dispatchableClassName)}";
 
-  DispatchableClassGenerator._withClasses(this._baseClassName, this._classesAcceptedByDispatcher);
+  DispatchableClassGenerator._withClasses(
+      this._baseClassName, this._classesAcceptedByDispatcher);
 
   factory DispatchableClassGenerator.validateAndCreate(
       ClassElement _baseClass, List<ClassElement> _subClasses) {
     _validate(_baseClass, _subClasses);
-    List<String> _classesAcceptedByDispatcher = [
+    return DispatchableClassGenerator._withClasses(_baseClass.name, [
       ..._subClasses.map((ClassElement e) => e.name),
       // Accept the BaseClass if it is possible to create an instance of it and pass it to the dispatcher!
-      if (!_baseClass.isAbstract) _baseClass.name
-    ];
-    return DispatchableClassGenerator._withClasses(_baseClass.name, _classesAcceptedByDispatcher);
+      if (!_baseClass.isAbstract)
+        _baseClass.name
+    ]);
   }
 
-  static void _validate(ClassElement _baseClass, List<ClassElement> _subClasses) {
+  static void _validate(
+      ClassElement _baseClass, List<ClassElement> _subClasses) {
     if (_baseClass.isEnum) {
       throw InvalidGenerationSourceError(
           "@dispatchable can only be used to annotate a class.",
@@ -109,9 +110,7 @@ class DispatchableClassGenerator {
   String _generateDispatcherFunctionBody() {
     final String baseClassParameterName =
         _lowerFirstChar(_baseClassName) + "Instance";
-    if (_classesAcceptedByDispatcher.isEmpty) {
-    } else {
-      return """
+    return """
       return ($baseClassParameterName) {
       ${_generateIfBloc()}
     else if($baseClassParameterName == null){
@@ -122,7 +121,6 @@ class DispatchableClassGenerator {
     }
     };
     """;
-    }
   }
 
   String _generateIfBloc() {
