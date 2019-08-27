@@ -3,23 +3,30 @@ import 'package:source_gen/source_gen.dart';
 
 import 'code_builders.dart';
 
-class DispatchableCodeBuilder {
-  final ClassElement _baseClass;
-  final List<ClassElement> _subClasses;
-
-  String get _baseClassName => _baseClass.name;
+class DispatchableClassGenerator {
+  final List<String> _classesAcceptedByDispatcher;
+  final String _baseClassName;
 
   String get _dispatchableClassName => _baseClassName + "Dispatcher";
 
-  List<String> get _classesAcceptedByDispatcher => [
-        ..._subClasses.map((ClassElement e) => e.name).toList(),
-        if (!_baseClass.isAbstract) _baseClassName
-      ];
 
-  String get _dispatchableFunctionName =>
-      "${_lowerFirstChar(_baseClassName)}Dispatcher";
+  String get _dispatchableStaticFunctionName =>
+      "${_lowerFirstChar(_dispatchableClassName)}";
 
-  DispatchableCodeBuilder(this._baseClass, this._subClasses) {
+  DispatchableClassGenerator._withClasses(this._baseClassName, this._classesAcceptedByDispatcher);
+
+  factory DispatchableClassGenerator.validateAndCreate(
+      ClassElement _baseClass, List<ClassElement> _subClasses) {
+    _validate(_baseClass, _subClasses);
+    List<String> _classesAcceptedByDispatcher = [
+      ..._subClasses.map((ClassElement e) => e.name),
+      // Accept the BaseClass if it is possible to create an instance of it and pass it to the dispatcher!
+      if (!_baseClass.isAbstract) _baseClass.name
+    ];
+    return DispatchableClassGenerator._withClasses(_baseClass.name, _classesAcceptedByDispatcher);
+  }
+
+  static void _validate(ClassElement _baseClass, List<ClassElement> _subClasses) {
     if (_baseClass.isEnum) {
       throw InvalidGenerationSourceError(
           "@dispatchable can only be used to annotate a class.",
@@ -85,12 +92,12 @@ class DispatchableCodeBuilder {
     classBuilder.addMethod("accept$_baseClassName")
       ..withParameter("$_baseClassName $acceptFunctionParameterName")
       ..withBody(
-          "return $_dispatchableClassName.$_dispatchableFunctionName($parameters)($acceptFunctionParameterName);")
+          "return $_dispatchableClassName.$_dispatchableStaticFunctionName($parameters)($acceptFunctionParameterName);")
       ..andReturns("T");
   }
 
   void _addStaticDispatchMethod(ClassBuilder classBuilder) {
-    classBuilder.addMethod(_dispatchableFunctionName)
+    classBuilder.addMethod(_dispatchableStaticFunctionName)
       ..whichIsStatic()
       ..whichHasATemplateParameter("T")
       ..withParameters(_classesAcceptedByDispatcher
