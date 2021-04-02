@@ -1,8 +1,6 @@
 name: dispatchable_generator
 description: >-
-  Generates dispatchers which take handlers for all sub classes of an annotated class,
-  allowing you to have type safety guarantees that all possible sub classes have been
-  considered by a given dispatcher.
+  Generates abstract dispatcher classes with handle methods for all sub classes of an annotated class.
 version: 0.0.1-dev.1
 homepage: https://github.com/nigel-gott/dispatchable
 
