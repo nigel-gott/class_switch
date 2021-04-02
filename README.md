@@ -4,9 +4,8 @@ A dart code generator which allows you to work with sub classes in a safer manne
 
 A class annotated with @dispatchable will have two different dispatcher classes 
 generated:
-* `{AnnotatedClassName}Dispatcher<T>` which has abstract methods for each sub-class of 
-  the annotated class.
-** This class will also have a static method `dispatcher`
+* `{AnnotatedClassName}Dispatcher<T>` which has abstract methods for each sub-class of the annotated class.
+  * This class will also have a static method `dispatcher`
 * `{AnnotatedClassName}DispatcherWithDefaults<T>` which has methods for each sub-class 
   of the annotated class returning the abstract method default.
 
