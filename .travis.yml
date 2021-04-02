@@ -26,12 +26,6 @@ jobs:
       env: PKGS="dispatchable_client_test dispatchable_project_example"
       script: tool/ci.sh command_0
     - stage: unit_test
-      name: "PKG: dispatchable; `pub run test`"
-      dart: stable
-      os: linux
-      env: PKGS="dispatchable"
-      script: tool/ci.sh test
-    - stage: unit_test
       name: "PKG: dispatchable_client_test; `pub run build_runner test --delete-conflicting-outputs`"
       dart: stable
       os: linux
@@ -63,4 +57,6 @@ cache:
   directories:
     - $HOME/.pub-cache
     - dispatchable/.dart_tool/build
+    - dispatchable_client_test/.dart_tool/build
     - dispatchable_generator/.dart_tool/build
+    - dispatchable_project_example/.dart_tool/build
