@@ -1,7 +1,7 @@
 name: dispatchable_generator
 description: >-
   Generates abstract dispatcher classes with handle methods for all sub classes of an annotated class.
-version: 0.0.1-dev.1
+version: 0.0.1-dev.2
 homepage: https://github.com/nigel-gott/dispatchable
 
 environment:
@@ -11,7 +11,7 @@ dependencies:
   build: ^2.0.0
   source_gen: ^1.0.0
   optional: ^6.0.0-nullsafety.0
-  dispatchable: ^0.0.1-dev.1
+  dispatchable: ^0.0.1-dev.2
   analyzer: ^1.3.0
   meta: ^1.3.0
 
