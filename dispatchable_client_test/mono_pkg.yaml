@@ -3,16 +3,13 @@ dart:
   - stable
 
 stages:
-  - analyzer_and_format:
-      - group:
-          - command: pub run build_runner build --delete-conflicting-outputs
-          - dartfmt
-          - dartanalyzer: --fatal-warnings --fatal-infos .
-        dart: [stable]
+  - analyze:
+      - command: pub run build_runner build --delete-conflicting-outputs
+      - dartfmt
+      - dartanalyzer
   - unit_test:
-      - group:
-          - command: pub run build_runner test --delete-conflicting-outputs
-        dart: [stable]
+      - test
+      - command: pub run build_runner test --delete-conflicting-outputs
 
 cache:
   directories:

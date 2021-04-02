@@ -33,11 +33,9 @@ abstract class FruitDispatcher<T> {
         return apple(fruitInstance);
       } else if (fruitInstance is Orange) {
         return orange(fruitInstance);
-      } else if (fruitInstance == null) {
-        throw ArgumentError("Null parameter passed to dispatchable.");
       } else {
         throw ArgumentError(
-            "Unknown class given to dispatchable: $fruitInstance. Have you added a new sub class for Fruit without running pub run build_runner build?. ");
+            'Unknown class given to dispatchable: $fruitInstance. Have you added a new sub class for Fruit without running pub run build_runner build?. ');
       }
     };
   }

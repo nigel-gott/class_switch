@@ -1,31 +1,57 @@
-# Created with package:mono_repo v2.1.0
+# Created with package:mono_repo v3.4.7
 language: dart
 
 jobs:
   include:
-    - stage: analyzer_and_format
-      name: "SDK: stable; PKGS: dispatchable, dispatchable_generator; TASKS: [`dartfmt -n --set-exit-if-changed .`, `dartanalyzer --fatal-warnings --fatal-infos .`]"
-      dart: [stable]
-      env: PKGS="dispatchable dispatchable_generator"
-      script: ./tool/travis.sh dartfmt dartanalyzer
-    - stage: analyzer_and_format
-      name: "SDK: stable; PKGS: dispatchable_client_test, dispatchable_example; TASKS: [`pub run build_runner build --delete-conflicting-outputs`, `dartfmt -n --set-exit-if-changed .`, `dartanalyzer --fatal-warnings --fatal-infos .`]"
-      dart: [stable]
-      env: PKGS="dispatchable_client_test dispatchable_example"
-      script: ./tool/travis.sh command_0 dartfmt dartanalyzer
+    - stage: analyze
+      name: mono_repo self validate
+      os: linux
+      script: "pub global activate mono_repo 3.4.7 && pub global run mono_repo generate --validate"
+    - stage: analyze
+      name: "PKGS: dispatchable, dispatchable_client_test, dispatchable_generator, dispatchable_project_example; `dartanalyzer .`"
+      dart: stable
+      os: linux
+      env: PKGS="dispatchable dispatchable_client_test dispatchable_generator dispatchable_project_example"
+      script: tool/ci.sh dartanalyzer
+    - stage: analyze
+      name: "PKGS: dispatchable, dispatchable_client_test, dispatchable_generator, dispatchable_project_example; `dartfmt -n --set-exit-if-changed .`"
+      dart: stable
+      os: linux
+      env: PKGS="dispatchable dispatchable_client_test dispatchable_generator dispatchable_project_example"
+      script: tool/ci.sh dartfmt
+    - stage: analyze
+      name: "PKGS: dispatchable_client_test, dispatchable_project_example; `pub run build_runner build --delete-conflicting-outputs`"
+      dart: stable
+      os: linux
+      env: PKGS="dispatchable_client_test dispatchable_project_example"
+      script: tool/ci.sh command_0
     - stage: unit_test
-      name: "SDK: stable; PKG: dispatchable_client_test; TASKS: `pub run build_runner test --delete-conflicting-outputs`"
-      dart: [stable]
+      name: "PKG: dispatchable; `pub run test`"
+      dart: stable
+      os: linux
+      env: PKGS="dispatchable"
+      script: tool/ci.sh test
+    - stage: unit_test
+      name: "PKG: dispatchable_client_test; `pub run build_runner test --delete-conflicting-outputs`"
+      dart: stable
+      os: linux
       env: PKGS="dispatchable_client_test"
-      script: ./tool/travis.sh command_1
+      script: tool/ci.sh command_1
     - stage: unit_test
-      name: "SDK: stable; PKG: dispatchable_generator; TASKS: `pub run test`"
-      dart: [stable]
+      name: "PKG: dispatchable_client_test; `pub run test`"
+      dart: stable
+      os: linux
+      env: PKGS="dispatchable_client_test"
+      script: tool/ci.sh test
+    - stage: unit_test
+      name: "PKG: dispatchable_generator; `pub run test`"
+      dart: stable
+      os: linux
       env: PKGS="dispatchable_generator"
-      script: ./tool/travis.sh command_2
+      script: tool/ci.sh test
 
 stages:
-  - analyzer_and_format
+  - analyze
   - unit_test
 
 # Only building master means that we don't run two builds for each pull request.
@@ -35,6 +61,6 @@ branches:
 
 cache:
   directories:
-    - "$HOME/.pub-cache"
-    - dispatchable_client_test/.dart_tool/build
+    - $HOME/.pub-cache
+    - dispatchable/.dart_tool/build
     - dispatchable_generator/.dart_tool/build

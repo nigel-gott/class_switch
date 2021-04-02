@@ -1,5 +1,6 @@
 name: dispatchable_project_example
 homepage: https://github.com/nigel-gott/dispatchable
+publish_to: none
 
 environment:
   sdk: '>=2.12.0 <3.0.0'

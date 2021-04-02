@@ -31,11 +31,9 @@ abstract class BaseClassDispatcher<T> {
         return subClassA(baseClassInstance);
       } else if (baseClassInstance is SubClassB) {
         return subClassB(baseClassInstance);
-      } else if (baseClassInstance == null) {
-        throw ArgumentError("Null parameter passed to dispatchable.");
       } else {
         throw ArgumentError(
-            "Unknown class given to dispatchable: $baseClassInstance. Have you added a new sub class for BaseClass without running pub run build_runner build?. ");
+            'Unknown class given to dispatchable: $baseClassInstance. Have you added a new sub class for BaseClass without running pub run build_runner build?. ');
       }
     };
   }
