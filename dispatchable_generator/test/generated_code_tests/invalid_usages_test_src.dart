@@ -1,4 +1,4 @@
-import 'package:dispatchable_annotation/dispatchable_annotation.dart';
+import 'package:dispatchable/dispatchable.dart';
 import 'package:source_gen_test/annotations.dart';
 
 @ShouldThrow(

@@ -1,0 +1,12 @@
+name: dispatchable
+description: >-
+  Package containing the annotations used by the `dispatchable_generator` package to
+  specify which classes to generate dispatchers for.
+version: 0.0.1-dev.1
+homepage: https://github.com/nigel-gott/dispatchable
+
+environment:
+  sdk: '>=2.12.0 <3.0.0'
+
+dev_dependencies:
+  pedantic: ^1.11.0

@@ -2,7 +2,7 @@ import 'dart:async';
 
 import 'package:analyzer/dart/element/element.dart';
 import 'package:build/src/builder/build_step.dart';
-import 'package:dispatchable_annotation/dispatchable_annotation.dart';
+import 'package:dispatchable/dispatchable.dart';
 import 'package:meta/meta.dart';
 import 'package:source_gen/source_gen.dart';
 
@@ -22,30 +22,31 @@ class DispatchableGenerator extends Generator {
 
   @visibleForTesting
   String generateForElement(Element element, LibraryReader library) {
-    _validateElement(element);
+    ClassElement classElement = _validateElement(element);
     List<ClassElement> subClasses =
-        DispatchableGenerator._findAllSubClassesInFile(library, element);
+        DispatchableGenerator._findAllSubClassesInFile(library, classElement);
     DispatchableClassGenerator dispatchableCodeBuilder =
-        DispatchableClassGenerator.validateAndCreate(element, subClasses);
+        DispatchableClassGenerator.validateAndCreate(classElement, subClasses);
     return [
       dispatchableCodeBuilder.generateDispatcherClass(),
       dispatchableCodeBuilder.generateDefaultDispatcherClass(),
     ].join("\n");
   }
 
-  static void _validateElement(Element element) {
+  static ClassElement _validateElement(Element element) {
     if (element is! ClassElement) {
       throw InvalidGenerationSourceError(
           "@dispatchable can only be used to annotate a class.",
           todo: "Remove @dispatchable annotation from the offending element.",
           element: element);
     }
+    return element;
   }
 
   static List<ClassElement> _findAllSubClassesInFile(
       LibraryReader libraryReader, ClassElement element) {
     return libraryReader.classes
-        .where((s) => s.supertype.element == element)
+        .where((s) => s.supertype?.element == element)
         .toList();
   }
 }

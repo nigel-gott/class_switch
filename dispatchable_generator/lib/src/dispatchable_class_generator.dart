@@ -20,9 +20,9 @@ class DispatchableClassGenerator {
     _validate(_baseClass, _subClasses);
     return DispatchableClassGenerator._withClasses(_baseClass.name, [
       ..._subClasses.map((ClassElement e) => e.name),
-      // Accept the BaseClass if it is possible to create an instance of it and pass it to the dispatcher!
-      if (!_baseClass.isAbstract)
-        _baseClass.name
+      // Accept the BaseClass if it is possible to create an instance of it and
+      // pass it to the dispatcher!
+      if (!_baseClass.isAbstract) _baseClass.name
     ]);
   }
 
@@ -36,9 +36,11 @@ class DispatchableClassGenerator {
     }
     if (_baseClass.isAbstract && _subClasses.isEmpty) {
       throw InvalidGenerationSourceError(
-          "Cannot generate a dispatchable for an abstract class with no sub classes.",
+          "Cannot generate a dispatchable for an abstract class with no sub "
+          "classes.",
           todo:
-              "Remove @dispatchable from the offending class or implement sub classes for it.",
+              "Remove @dispatchable from the offending class or implement sub "
+              "classes for it.",
           element: _baseClass);
     }
   }
@@ -90,10 +92,12 @@ class DispatchableClassGenerator {
         _lowerFirstChar(_baseClassName) + "Instance";
     String parameters =
         _classesAcceptedByDispatcher.map(_classMethodName).join(",");
+    String body =
+        "return $_dispatchableClassName.$_dispatchableStaticFunctionName"
+        "($parameters)($acceptFunctionParameterName);";
     classBuilder.addMethod("accept$_baseClassName")
       ..withParameter("$_baseClassName $acceptFunctionParameterName")
-      ..withBody(
-          "return $_dispatchableClassName.$_dispatchableStaticFunctionName($parameters)($acceptFunctionParameterName);")
+      ..withBody(body)
       ..andReturns("T");
   }
 
@@ -117,7 +121,9 @@ class DispatchableClassGenerator {
       throw ArgumentError("Null parameter passed to dispatchable.");
     } else {
       throw ArgumentError(
-      "Unknown class given to dispatchable: \$$baseClassParameterName. Have you added a new sub class for $_baseClassName without running pub run build_runner build?. ");
+      "Unknown class given to dispatchable: \$$baseClassParameterName. Have you 
+      added a new sub class for $_baseClassName without running pub run 
+      build_runner build?. ");
     }
     };
     """;

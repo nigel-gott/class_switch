@@ -1,22 +1,3 @@
-A library for Dart developers.
-
-Created from templates made available by Stagehand under a BSD-style
-[license](https://github.com/dart-lang/stagehand/blob/master/LICENSE).
-
-## Usage
-
-A simple usage example:
-
-```dart
-import 'package:type_hander_example/type_hander_example.dart';
-
-main() {
-  var awesome = new Awesome();
-}
-```
-
-## Features and bugs
-
-Please file feature requests and bugs at the [issue tracker][tracker].
-
-[tracker]: http://example.com/issues/replaceme
+This directory contains an example project with tests which run as part of 
+Dispatchable's build. This way we can have tests checking that a project actually using 
+and running dispatchable works. Think of it like a fully end-to-end test.
