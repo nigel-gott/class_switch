@@ -3,14 +3,14 @@ import 'package:test/test.dart';
 
 part 'dispatchable_edge_cases_test.g.dart';
 
-@dispatchable
+@Dispatchable()
 class NonAbstractBaseClass {}
 
 class FirstSubClassOfNonAbstractBaseClass extends NonAbstractBaseClass {}
 
 class SecondSubClassOfNonAbstractBaseClass extends NonAbstractBaseClass {}
 
-@dispatchable
+@Dispatchable()
 abstract class BaseClass {}
 
 class FirstSubType extends BaseClass {}
@@ -21,7 +21,7 @@ class FirstSubTypeOfFirstSubType extends FirstSubType {}
 
 class SecondSubTypeOfFirstSubType extends FirstSubType {}
 
-@dispatchable
+@Dispatchable()
 class ClassWithNoSubClasses {}
 
 void main() {
@@ -30,8 +30,7 @@ void main() {
         'Generates an extra handler function for the base class type if it is '
         'not abstract.', () {
       var func =
-          NonAbstractBaseClassDispatcher.nonAbstractBaseClassDispatcher<String>(
-              (firstSubType) {
+          _$NonAbstractBaseClassDispatcher.acceptFunc<String>((firstSubType) {
         return 'first';
       }, (secondSubType) {
         return 'second';
@@ -45,8 +44,7 @@ void main() {
     test(
         'Only generates for immediate sub-classes of the annotated type and '
         'ignores any sub-classes of the sub-classes', () {
-      var func =
-          BaseClassDispatcher.baseClassDispatcher<String>((firstSubType) {
+      var func = _$BaseClassDispatcher.acceptFunc<String>((firstSubType) {
         return 'first';
       }, (secondSubType) {
         return 'second';
@@ -60,8 +58,7 @@ void main() {
         'Generates with a single dispatcher for the base class when non '
         'abstract base class with no sub classes is annotated', () {
       final function =
-          ClassWithNoSubClassesDispatcher.classWithNoSubClassesDispatcher(
-              (classWithNoSubClasses) {
+          _$ClassWithNoSubClassesDispatcher.acceptFunc((classWithNoSubClasses) {
         return 1;
       });
       expect(function(ClassWithNoSubClasses()), 1);

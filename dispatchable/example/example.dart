@@ -2,7 +2,7 @@ import 'package:dispatchable/dispatchable.dart';
 
 part 'example.g.dart';
 
-@dispatchable
+@Dispatchable()
 abstract class Fruit {}
 
 class Apple extends Fruit {}
@@ -10,18 +10,17 @@ class Apple extends Fruit {}
 class Orange extends Fruit {}
 
 void main() {
-  assert(FruitDispatcher.fruitDispatcher((apple) {
+  assert(_$FruitDispatcher.acceptFunc((apple) {
         return 1;
       }, (orange) {
         return 2;
       })(Apple()) ==
       1);
-  assert(MyFruitHandler().acceptFruit(Orange()) == 2);
-  assert(MyFruitHandlerWithADefault().acceptFruit(Orange()) ==
-      'orange is special');
+  assert(MyFruitHandler().accept(Orange()) == 2);
+  assert(MyFruitHandlerWithADefault().accept(Orange()) == 'orange is special');
 }
 
-class MyFruitHandler extends FruitDispatcher<int> {
+class MyFruitHandler extends _$FruitDispatcher<int> {
   @override
   int apple(Apple apple) {
     return 1;
@@ -33,7 +32,7 @@ class MyFruitHandler extends FruitDispatcher<int> {
   }
 }
 
-class MyFruitHandlerWithADefault extends FruitDispatcherWithDefault<String> {
+class MyFruitHandlerWithADefault extends _$FruitDispatcherWithDefault<String> {
   @override
   String defaultValue() {
     return 'default';

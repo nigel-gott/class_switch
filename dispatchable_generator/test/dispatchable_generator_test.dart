@@ -11,6 +11,7 @@ Future main() async {
   initializeBuildLogTracking();
   await testFile('invalid_usages_test_src.dart');
   await testFile('dispatchable_generator_test_src.dart');
+  await testFile('multi_dispatchable_generator_test_src.dart');
 }
 
 Future testFile(String fileName) async {
@@ -32,6 +33,7 @@ class WrappingDispatchableGeneratorForTest
   @override
   generateForAnnotatedElement(
       Element element, ConstantReader annotation, BuildStep buildStep) {
-    return DispatchableGenerator().generateForElement(element, _libraryReader);
+    return DispatchableGenerator()
+        .generateForElement(element, annotation, _libraryReader);
   }
 }

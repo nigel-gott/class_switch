@@ -1,48 +1,55 @@
 import 'package:analyzer/dart/element/element.dart';
-import 'package:source_gen/source_gen.dart';
 
 import 'code_builders.dart';
 
+class TypeWithSubTypes {
+  final ClassElement type;
+  final List<ClassElement> subTypes;
+
+  TypeWithSubTypes(this.type, this.subTypes);
+}
+
+class BaseNameWithSubNames {
+  final String baseName;
+  final List<String> subNames;
+
+  BaseNameWithSubNames(this.baseName, this.subNames);
+}
+
 class DispatchableClassGenerator {
-  final List<String> _classesAcceptedByDispatcher;
-  final String _baseClassName;
+  final List<BaseNameWithSubNames> _classes;
+  final String _targetClassName;
+  final List<List<String>> _subTypePermutations;
+  final String methodPrefix;
+  final String methodSeparator;
 
-  String get _dispatchableClassName => _baseClassName + 'Dispatcher';
+  String get _dispatchableClassName => '_\$' + _targetClassName + 'Dispatcher';
 
-  String get _dispatchableStaticFunctionName =>
-      '${_lowerFirstChar(_dispatchableClassName)}';
+  String get _dispatchableStaticFunctionName => 'acceptFunc';
 
-  DispatchableClassGenerator._withClasses(
-      this._baseClassName, this._classesAcceptedByDispatcher);
+  bool get _generateSubTypeSpecificDefaultMethods => _classes.length > 1;
 
-  factory DispatchableClassGenerator.validateAndCreate(
-      ClassElement _baseClass, List<ClassElement> _subClasses) {
-    _validate(_baseClass, _subClasses);
-    return DispatchableClassGenerator._withClasses(_baseClass.name, [
-      ..._subClasses.map((ClassElement e) => e.name),
-      // Accept the BaseClass if it is possible to create an instance of it and
-      // pass it to the dispatcher!
-      if (!_baseClass.isAbstract) _baseClass.name
-    ]);
-  }
+  DispatchableClassGenerator._withClasses(this._targetClassName, this._classes,
+      this._subTypePermutations, this.methodSeparator, this.methodPrefix);
 
-  static void _validate(
-      ClassElement _baseClass, List<ClassElement> _subClasses) {
-    if (_baseClass.isEnum) {
-      throw InvalidGenerationSourceError(
-          '@dispatchable can only be used to annotate a class.',
-          todo: 'Remove @dispatchable annotation from the offending element.',
-          element: _baseClass);
-    }
-    if (_baseClass.isAbstract && _subClasses.isEmpty) {
-      throw InvalidGenerationSourceError(
-          'Cannot generate a dispatchable for an abstract class with no sub '
-          'classes.',
-          todo:
-              'Remove @dispatchable from the offending class or implement sub '
-              'classes for it.',
-          element: _baseClass);
-    }
+  factory DispatchableClassGenerator.create(
+      ClassElement _baseClass,
+      List<TypeWithSubTypes> _subClasses,
+      String methodPrefix,
+      String methodSeparator) {
+    var _classes = [
+      ..._subClasses.map((TypeWithSubTypes e) {
+        return BaseNameWithSubNames(e.type.name, [
+          ...e.subTypes.map((e) => e.name).toList(),
+          if (!e.type.isAbstract) e.type.name,
+        ]);
+      }),
+    ];
+    var algo =
+        PermutationAlgorithmStrings(_classes.map((e) => e.subNames).toList());
+
+    return DispatchableClassGenerator._withClasses(_baseClass.name, _classes,
+        algo.permutations(), methodPrefix, methodSeparator);
   }
 
   String generateDispatcherClass() {
@@ -59,7 +66,7 @@ class DispatchableClassGenerator {
     ClassBuilder classBuilder = ClassBuilder(className);
     _addAcceptMethod(classBuilder);
     if (withDefault) {
-      _addAbstractDefaultMethod(classBuilder);
+      _addAbstractDefaultMethods(classBuilder);
     } else {
       _addStaticDispatchMethod(classBuilder);
     }
@@ -68,58 +75,95 @@ class DispatchableClassGenerator {
   }
 
   void _addSubClassMethods(bool withDefault, ClassBuilder classBuilder) {
-    _classesAcceptedByDispatcher.forEach((subClassName) {
-      String methodName = _classMethodName(subClassName);
+    this._subTypePermutations.forEach((subTypePermutation) {
+      String methodName = _classMethodName(subTypePermutation);
+      List<String> parameterNames = _classMethodParamNames(subTypePermutation);
       MethodBuilder builder = classBuilder.addMethod(methodName)
-        ..withParameter('$subClassName $methodName')
+        ..withParameters(parameterNames)
         ..andReturns('T');
       if (withDefault) {
-        builder.withBody('return defaultValue();');
+        var defaultMethodName = _generateSubTypeSpecificDefaultMethods
+            ? 'defaultValue${subTypePermutation.first}'
+            : 'defaultValue';
+        var body = 'return $defaultMethodName();';
+        builder.withBody(body);
       } else {
         builder.whichIsAbstract();
       }
     });
   }
 
-  void _addAbstractDefaultMethod(ClassBuilder classBuilder) {
+  void _addAbstractDefaultMethods(ClassBuilder classBuilder) {
+    if (_generateSubTypeSpecificDefaultMethods) {
+      _classes.first.subNames.forEach((element) {
+        classBuilder.addMethod('defaultValue$element')
+          ..withBody('return defaultValue();')
+          ..andReturns('T');
+      });
+    }
     classBuilder.addMethod('defaultValue')
       ..whichIsAbstract()
       ..andReturns('T');
   }
 
   void _addAcceptMethod(ClassBuilder classBuilder) {
-    String acceptFunctionParameterName =
-        _lowerFirstChar(_baseClassName) + 'Instance';
-    String parameters =
-        _classesAcceptedByDispatcher.map(_classMethodName).join(',');
+    var baseNameSet =
+        this._classes.map((e) => _lowerFirstChar(e.baseName)).toSet();
+    var methodNames = this._subTypePermutations.map((subTypePermutation) {
+      var classMethodName = _classMethodName(subTypePermutation);
+      if (baseNameSet.contains(classMethodName)) {
+        return 'this.${classMethodName}';
+      } else {
+        return classMethodName;
+      }
+    });
+    var instanceArgs = this
+        ._classes
+        .map((e) => e.baseName)
+        .map(this._lowerFirstChar)
+        .join(', ');
+    var instanceParams = this
+        ._classes
+        .map((e) => e.baseName)
+        .map((e) => '$e ${this._lowerFirstChar(e)}')
+        .toList();
+    String acceptArgs = methodNames.join(',');
     String body =
         'return $_dispatchableClassName.$_dispatchableStaticFunctionName'
-        '($parameters)($acceptFunctionParameterName);';
-    classBuilder.addMethod('accept$_baseClassName')
-      ..withParameter('$_baseClassName $acceptFunctionParameterName')
+        '($acceptArgs)($instanceArgs);';
+    classBuilder.addMethod('accept')
+      ..withParameters(instanceParams)
       ..withBody(body)
       ..andReturns('T');
   }
 
   void _addStaticDispatchMethod(ClassBuilder classBuilder) {
+    var parameters = _subTypePermutations.map((subTypePermutation) {
+      var funcParams = subTypePermutation.join(', ');
+      var name = _classMethodName(subTypePermutation);
+      return 'T Function($funcParams) $name';
+    });
+    var baseClassTypes = _classes.map((e) => e.baseName).join(', ');
     classBuilder.addMethod(_dispatchableStaticFunctionName)
       ..whichIsStatic()
       ..whichHasATemplateParameter('T')
-      ..withParameters(_classesAcceptedByDispatcher
-          .map((e) => 'T Function($e) ${_classMethodName(e)}'))
+      ..withParameters(parameters)
       ..withBody(_generateDispatcherFunctionBody())
-      ..andReturns('T Function($_baseClassName)');
+      ..andReturns('T Function($baseClassTypes)');
   }
 
   String _generateDispatcherFunctionBody() {
-    final String baseClassParameterName =
-        _lowerFirstChar(_baseClassName) + 'Instance';
+    var baseClassParamNames =
+        _classes.map((e) => '${_lowerFirstChar(e.baseName)}Param').join(', ');
+    var baseClassParamNamesWithDollars =
+        _classes.map((e) => '\$${_lowerFirstChar(e.baseName)}Param').join(', ');
+    var baseClassTypeNames = _classes.map((e) => e.baseName).join(', ');
     return '''
-      return ($baseClassParameterName) {
+      return ($baseClassParamNames) {
       ${_generateIfBloc()}
      else {
       throw ArgumentError(
-        'Unknown class given to dispatchable: \$$baseClassParameterName. Have you added a new sub class for $_baseClassName without running pub run build_runner build?. '
+        "Unknown class given to one or all of dispatchable's accept args: $baseClassParamNamesWithDollars. Have you added a new sub class for any of: $baseClassTypeNames without running pub run build_runner build?. "
       );
     }
     };
@@ -127,37 +171,67 @@ class DispatchableClassGenerator {
   }
 
   String _generateIfBloc() {
-    final String firstSubClass = _classesAcceptedByDispatcher[0];
-    final List<String> remainingSubClassNames =
-        _classesAcceptedByDispatcher.sublist(1);
-    final String baseClassParameterName =
-        _lowerFirstChar(_baseClassName) + 'Instance';
+    final List<String> firstSubClass = _subTypePermutations.first;
+    final List<List<String>> remainingSubClassNames =
+        _subTypePermutations.sublist(1);
+    final List<String> paramNames =
+        _classes.map((e) => '${_lowerFirstChar(e.baseName)}Param').toList();
 
     final String firstIf = _ifStatement(
-        baseClassParameterName, firstSubClass, _classMethodName(firstSubClass));
-    final String elseIfs = remainingSubClassNames
-        .map((e) =>
-            _elseIfStatement(baseClassParameterName, e, _classMethodName(e)))
-        .join();
+        paramNames, firstSubClass, _classMethodName(firstSubClass), false);
+    final String elseIfs = remainingSubClassNames.map((e) {
+      return _ifStatement(paramNames, e, _classMethodName(e), true);
+    }).join();
     return '''
     $firstIf
     $elseIfs
     ''';
   }
 
-  String _classMethodName(String type) => '${_lowerFirstChar(type)}';
+  String _classMethodName(List<String> types) =>
+      _lowerFirstChar(this.methodPrefix + types.join(this.methodSeparator));
 
-  String _ifStatement(String param, String type, String handler) => '''
-  if($param is $type) {
-    return $handler($param);
+  String _ifStatement(
+      List<String> params, List<String> types, String handler, bool elseIf) {
+    var ises = [];
+    for (var i = 0; i < params.length; i++) {
+      ises.add('${params[i]} is ${types[i]}');
+    }
+    return '''
+  ${elseIf ? 'else ' : ''}if(${ises.join(' && ')}) {
+    return $handler(${params.join(', ')});
   }
   ''';
-
-  String _elseIfStatement(String param, String type, String handler) => '''
-  else if($param is $type) {
-    return $handler($param);
   }
-  ''';
 
   String _lowerFirstChar(String e) => e.replaceRange(0, 1, e[0].toLowerCase());
+
+  List<String> _classMethodParamNames(List<String> subNames) {
+    return subNames.map((e) => '$e ${_lowerFirstChar(e)}').toList();
+  }
+}
+
+class PermutationAlgorithmStrings {
+  final List<List<String>> elements;
+
+  PermutationAlgorithmStrings(this.elements);
+
+  List<List<String>> permutations() {
+    List<List<String>> perms = [];
+    generatePermutations(elements, perms, 0, []);
+    return perms;
+  }
+
+  void generatePermutations(List<List<String>> lists, List<List<String>> result,
+      int depth, List<String> current) {
+    if (depth == lists.length) {
+      result.add(current);
+      return;
+    }
+
+    for (int i = 0; i < lists[depth].length; i++) {
+      generatePermutations(
+          lists, result, depth + 1, [...current, lists[depth][i]]);
+    }
+  }
 }

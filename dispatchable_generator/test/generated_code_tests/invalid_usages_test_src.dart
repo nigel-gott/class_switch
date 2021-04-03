@@ -2,49 +2,48 @@ import 'package:dispatchable/dispatchable.dart';
 import 'package:source_gen_test/annotations.dart';
 
 @ShouldThrow(
-  'Cannot generate a dispatchable for an abstract class with no sub classes.',
-  todo:
-      'Remove @dispatchable from the offending class or implement sub classes '
-      'for it.',
-)
-@dispatchable
+    '@Dispatchable does not support abstract classes with no sub '
+    'classes.',
+    todo: 'Remove @Dispatchable from BaseClass or define sub classes for it.')
+@Dispatchable()
 abstract class BaseClass {}
 
 @ShouldThrow(
-  '@dispatchable can only be used to annotate a class.',
-  todo: 'Remove @dispatchable annotation from the offending element.',
+  '@Dispatchable only supports classes.',
+  todo: 'Remove @Dispatchable from cannotAnnotateShortFormFunctions.',
 )
-@dispatchable
+@Dispatchable()
 int cannotAnnotateShortFormFunctions() => 0;
 
 @ShouldThrow(
-  '@dispatchable can only be used to annotate a class.',
-  todo: 'Remove @dispatchable annotation from the offending element.',
+  '@Dispatchable only supports classes.',
+  todo: 'Remove @Dispatchable from cannotAnnotateEnums.',
 )
-@dispatchable
+@Dispatchable()
 enum cannotAnnotateEnums { ONE }
 
 @ShouldThrow(
-  '@dispatchable can only be used to annotate a class.',
-  todo: 'Remove @dispatchable annotation from the offending element.',
+  '@Dispatchable only supports classes.',
+  todo: 'Remove @Dispatchable from cannotAnnotateFunctions.',
 )
-@dispatchable
+@Dispatchable()
 int cannotAnnotateFunctions() {
   return 0;
 }
 
 @ShouldThrow(
-  '@dispatchable can only be used to annotate a class.',
-  todo: 'Remove @dispatchable annotation from the offending element.',
+  '@Dispatchable only supports classes.',
+  todo: 'Remove @Dispatchable from cannotAnnotateVariables.',
 )
-@dispatchable
+@Dispatchable()
 int cannotAnnotateVariables = 0;
 
 class CannotAnnotateInsideAClass {
   @ShouldThrow(
-    '@dispatchable can only be used to annotate a class.',
-    todo: 'Remove @dispatchable annotation from the offending element.',
+    '@Dispatchable only supports classes.',
+    todo:
+        'Remove @Dispatchable from cannotAnnotateInsideAnElementInsideAClass.',
   )
-  @dispatchable
+  @Dispatchable()
   int cannotAnnotateInsideAnElementInsideAClass = 0;
 }

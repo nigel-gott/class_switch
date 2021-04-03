@@ -2,10 +2,9 @@ import 'package:dispatchable/dispatchable.dart';
 import 'package:source_gen_test/annotations.dart';
 
 @ShouldGenerate(r'''
-abstract class BaseClassDispatcherWithDefault<T> {
-  T acceptBaseClass(BaseClass baseClassInstance) {
-    return BaseClassDispatcher.baseClassDispatcher(subClassA, subClassB)(
-        baseClassInstance);
+abstract class _$BaseClassDispatcherWithDefault<T> {
+  T accept(BaseClass baseClass) {
+    return _$BaseClassDispatcher.acceptFunc(subClassA, subClassB)(baseClass);
   }
 
   T defaultValue();
@@ -18,22 +17,21 @@ abstract class BaseClassDispatcherWithDefault<T> {
   }
 }
 
-abstract class BaseClassDispatcher<T> {
-  T acceptBaseClass(BaseClass baseClassInstance) {
-    return BaseClassDispatcher.baseClassDispatcher(subClassA, subClassB)(
-        baseClassInstance);
+abstract class _$BaseClassDispatcher<T> {
+  T accept(BaseClass baseClass) {
+    return _$BaseClassDispatcher.acceptFunc(subClassA, subClassB)(baseClass);
   }
 
-  static T Function(BaseClass) baseClassDispatcher<T>(
+  static T Function(BaseClass) acceptFunc<T>(
       T Function(SubClassA) subClassA, T Function(SubClassB) subClassB) {
-    return (baseClassInstance) {
-      if (baseClassInstance is SubClassA) {
-        return subClassA(baseClassInstance);
-      } else if (baseClassInstance is SubClassB) {
-        return subClassB(baseClassInstance);
+    return (baseClassParam) {
+      if (baseClassParam is SubClassA) {
+        return subClassA(baseClassParam);
+      } else if (baseClassParam is SubClassB) {
+        return subClassB(baseClassParam);
       } else {
         throw ArgumentError(
-            'Unknown class given to dispatchable: $baseClassInstance. Have you added a new sub class for BaseClass without running pub run build_runner build?. ');
+            "Unknown class given to one or all of dispatchable's accept args: $baseClassParam. Have you added a new sub class for any of: BaseClass without running pub run build_runner build?. ");
       }
     };
   }
@@ -42,7 +40,7 @@ abstract class BaseClassDispatcher<T> {
   T subClassB(SubClassB subClassB);
 }
 ''')
-@dispatchable
+@Dispatchable()
 abstract class BaseClass {}
 
 class SubClassA extends BaseClass {}

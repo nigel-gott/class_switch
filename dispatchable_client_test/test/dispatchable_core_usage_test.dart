@@ -3,7 +3,7 @@ import 'package:test/test.dart';
 
 part 'dispatchable_core_usage_test.g.dart';
 
-@dispatchable
+@Dispatchable()
 abstract class Fruit {}
 
 class Apple extends Fruit {}
@@ -12,7 +12,7 @@ class Pear extends Fruit {}
 
 class Orange extends Fruit {}
 
-class FruitNamer extends FruitDispatcher<String> {
+class FruitNamer extends _$FruitDispatcher<String> {
   @override
   String apple(Apple apple) {
     return 'Apple';
@@ -29,7 +29,7 @@ class FruitNamer extends FruitDispatcher<String> {
   }
 }
 
-class IsAnAppleChecker extends FruitDispatcherWithDefault<bool> {
+class IsAnAppleChecker extends _$FruitDispatcherWithDefault<bool> {
   @override
   bool defaultValue() {
     return false;
@@ -43,29 +43,29 @@ class IsAnAppleChecker extends FruitDispatcherWithDefault<bool> {
 
 void main() {
   group('Tests showing core dispatchable library usage.', () {
-    group('Annotating a class with @subtype will generate:', () {
+    group('Annotating a class with @Dispatchable() will generate:', () {
       test(
           'A class with abstract methods for each sub-class and a method '
           'dispatching to the corresponding abstract subtype method.', () {
         var fruitNamer = FruitNamer();
-        expect(fruitNamer.acceptFruit(Apple()), 'Apple');
-        expect(fruitNamer.acceptFruit(Pear()), 'Pear');
-        expect(fruitNamer.acceptFruit(Orange()), 'Orange');
+        expect(fruitNamer.accept(Apple()), 'Apple');
+        expect(fruitNamer.accept(Pear()), 'Pear');
+        expect(fruitNamer.accept(Orange()), 'Orange');
       });
       test(
           'A class with an abstract default method and non abstract sub-class '
           'methods which return the default if not overridden plus the '
           'dispatch method.', () {
         var appleChecker = IsAnAppleChecker();
-        expect(appleChecker.acceptFruit(Apple()), true);
-        expect(appleChecker.acceptFruit(Pear()), false);
-        expect(appleChecker.acceptFruit(Orange()), false);
+        expect(appleChecker.accept(Apple()), true);
+        expect(appleChecker.accept(Pear()), false);
+        expect(appleChecker.accept(Orange()), false);
       });
       test(
           'A static method which takes a function per sub-class and returns a '
           'sub-class dispatch method using the provided functions.', () {
         var fruitDispatchFunction =
-            FruitDispatcher.fruitDispatcher<int>((Apple apple) {
+            _$FruitDispatcher.acceptFunc<int>((Apple apple) {
           return 1;
         }, (Pear pear) {
           return 2;
@@ -82,7 +82,7 @@ void main() {
 }
 
 int Function(Fruit) aDispatcherFunction() {
-  return FruitDispatcher.fruitDispatcher<int>((Apple apple) {
+  return _$FruitDispatcher.acceptFunc<int>((Apple apple) {
     return 1;
   }, (Pear pear) {
     return 2;

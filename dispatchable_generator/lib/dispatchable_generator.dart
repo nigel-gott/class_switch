@@ -4,7 +4,7 @@
 ///
 /// A dispatcher takes an instance of a class and calls a user defined function
 /// depending on which sub type it is.
-/// Dispatchable will generate for a class annotated with @dispatchable:
+/// Dispatchable will generate for a class annotated with @Dispatchable():
 /// * An abstract Dispatcher class which has:
 /// ** Abstract sub-class methods for each possible sub-class found in the same
 ///    file as the annotated class.
@@ -22,7 +22,7 @@
 ///
 ///
 /// `
-///@dispatchable
+///@Dispatchable()
 ///abstract class Fruit {}
 ///class Apple extends Fruit {}
 ///class Orange extends Fruit {}

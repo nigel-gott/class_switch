@@ -1,5 +1,10 @@
 class Dispatchable {
-  const Dispatchable();
-}
+  final List<Type> classes;
+  final String methodPrefix;
+  final String methodSeparator;
 
-const Dispatchable dispatchable = Dispatchable();
+  const Dispatchable(
+      {this.classes = const [],
+      this.methodSeparator = '',
+      this.methodPrefix = ''});
+}

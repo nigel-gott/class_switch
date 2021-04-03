@@ -6,10 +6,10 @@ environment:
   sdk: '>=2.12.0 <3.0.0'
 
 dependencies:
-  dispatchable: ^0.0.1-dev.2
+  dispatchable: ^0.0.1-dev.3
 
 dev_dependencies:
-  dispatchable_generator: ^0.0.1-dev.2
+  dispatchable_generator: ^0.0.1-dev.3
   pedantic: ^1.11.0
   test: ^1.16.5
   build_runner: ^1.12.2
