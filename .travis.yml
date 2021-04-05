@@ -8,34 +8,34 @@ jobs:
       os: linux
       script: "pub global activate mono_repo 3.4.7 && pub global run mono_repo generate --validate"
     - stage: analyze
-      name: "PKGS: dispatchable, dispatchable_generator; `dartanalyzer .`"
+      name: "PKGS: class_switch, class_switch_generator; `dartanalyzer .`"
       dart: stable
       os: linux
-      env: PKGS="dispatchable dispatchable_generator"
+      env: PKGS="class_switch class_switch_generator"
       script: tool/ci.sh dartanalyzer
     - stage: analyze
-      name: "PKGS: dispatchable, dispatchable_generator; `dartfmt -n --set-exit-if-changed .`"
+      name: "PKGS: class_switch, class_switch_generator; `dartfmt -n --set-exit-if-changed .`"
       dart: stable
       os: linux
-      env: PKGS="dispatchable dispatchable_generator"
+      env: PKGS="class_switch class_switch_generator"
       script: tool/ci.sh dartfmt
     - stage: analyze
-      name: "PKGS: dispatchable_client_test, dispatchable_project_example; `pub run build_runner build --delete-conflicting-outputs`, `dartfmt -n --set-exit-if-changed .`, `dartanalyzer .`"
+      name: "PKGS: class_switch_client_test, class_switch_project_example; `pub run build_runner build --delete-conflicting-outputs`, `dartfmt -n --set-exit-if-changed .`, `dartanalyzer .`"
       dart: stable
       os: linux
-      env: PKGS="dispatchable_client_test dispatchable_project_example"
+      env: PKGS="class_switch_client_test class_switch_project_example"
       script: tool/ci.sh command_0 dartfmt dartanalyzer
     - stage: unit_test
-      name: "PKG: dispatchable_client_test; `pub run build_runner test --delete-conflicting-outputs`"
+      name: "PKG: class_switch_client_test; `pub run build_runner test --delete-conflicting-outputs`"
       dart: stable
       os: linux
-      env: PKGS="dispatchable_client_test"
+      env: PKGS="class_switch_client_test"
       script: tool/ci.sh command_1
     - stage: unit_test
-      name: "PKG: dispatchable_generator; `pub run test`"
+      name: "PKG: class_switch_generator; `pub run test`"
       dart: stable
       os: linux
-      env: PKGS="dispatchable_generator"
+      env: PKGS="class_switch_generator"
       script: tool/ci.sh test
 
 stages:
@@ -50,7 +50,7 @@ branches:
 cache:
   directories:
     - $HOME/.pub-cache
-    - dispatchable/.dart_tool/build
-    - dispatchable_client_test/.dart_tool/build
-    - dispatchable_generator/.dart_tool/build
-    - dispatchable_project_example/.dart_tool/build
+    - class_switch/.dart_tool/build
+    - class_switch_client_test/.dart_tool/build
+    - class_switch_generator/.dart_tool/build
+    - class_switch_project_example/.dart_tool/build

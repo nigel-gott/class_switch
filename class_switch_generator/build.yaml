@@ -1,0 +1,13 @@
+targets:
+  $default:
+    builders:
+      class_switch:
+        enabled: true
+builders:
+  class_switch:
+    import: "package:class_switch_generator/builder.dart"
+    builder_factories: ["class_switch"]
+    build_extensions: {".dart": [".class_switch.g.part"]}
+    auto_apply: dependents
+    build_to: cache
+    applies_builders: ["source_gen|combining_builder"]
