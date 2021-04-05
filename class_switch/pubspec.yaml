@@ -1,9 +1,8 @@
 name: class_switch
 description: >-
-  class_switch lets you you switch over all the sub-classes of a class instance
-  or over multiple different classes at once. Pairs with class_switch_generator
-  which does the actual code generation to enable class switching.
-version: 0.0.1-dev.1
+  `class_switch_generator` lets you switch over all the sub-classes of a class instance
+   or all possible combinations of sub-classes for multiple base class instances.
+version: 0.0.1-dev.2
 homepage: https://github.com/nigel-gott/class_switch
 
 environment:

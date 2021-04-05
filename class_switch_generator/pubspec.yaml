@@ -1,19 +1,18 @@
 name: class_switch_generator
 description: >-
-  class_switch_generator lets you you switch over all the sub-classes of a class
-  instance or over multiple different classes at once. Pairs with class_switch
-  which contains the annotations to mark classes to have switch code generated for.
-version: 0.0.1-dev.1
+  `class_switch_generator` lets you switch over all the sub-classes of a class instance
+   or all possible combinations of sub-classes for multiple base class instances.
+version: 0.0.1-dev.2
 homepage: https://github.com/nigel-gott/class_switch
 
 environment:
   sdk: '>=2.12.0 <3.0.0'
 
 dependencies:
+  class_switch: ^0.0.1-dev.2
   build: ^2.0.0
   source_gen: ^1.0.0
   optional: ^6.0.0-nullsafety.0
-  class_switch: ^0.0.1-dev.0
   analyzer: ^1.3.0
   meta: ^1.3.0
   generic_reader: ^0.2.2

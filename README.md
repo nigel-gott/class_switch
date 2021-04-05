@@ -1,9 +1,11 @@
 [![Build Status](https://travis-ci.com/nigel-gott/class_switch.svg?branch=master)](https://travis-ci.com/nigel-gott/class_switch)
 
 `class_switch` lets you switch over all the sub-classes of a class instance
-in dart. It does this by providing a dart code generator and related
-annotations to mark classes you would like to have class switching functions
-and mixins generated for.
+or all possible combinations of sub-classes for multiple base class
+instances. Using the
+[class_switch_generator](https://pub.dev/packages/class_switch_generator)
+library and annotations from `class_switch` you can generate functions
+and mixins to do customizable type safe switching.
 It pairs wonderfully with bloc helping you get rid of event and state
 handling boilerplate. See the "Example With Bloc" section below for more.
 
