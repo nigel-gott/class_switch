@@ -32,10 +32,6 @@ void main() {
             (pear) => 'pear',
             (orange) => 'orange');
         assert(r == 'pear');
-
-        // var p = Pear();
-        // r = p.$switch((pear) => 'pear');
-        // assert(r == 'pear');
       });
     });
   });

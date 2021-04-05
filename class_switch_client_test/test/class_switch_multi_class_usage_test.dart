@@ -1,7 +1,7 @@
 import 'package:class_switch/class_switch.dart';
 import 'package:test/test.dart';
 
-part 'class_switch_multi_usage_test.g.dart';
+part 'class_switch_multi_class_usage_test.g.dart';
 
 abstract class Event {}
 
@@ -19,16 +19,18 @@ class LoadingState extends State {}
 class MyClass {}
 
 @ClassSwitch(
-    prefix: '\$outer',
     classes: [State, Event],
-    syntaxMode:
-        SYNTAX_MODE.OUTER_METHOD_TAKES_INSTANCES_AND_RETURNS_CASE_FUNCTION)
+    options: ClassSwitchOptions(
+        switchFunctionPrefix: '\$outer',
+        dslMode:
+            DSL_MODE.OUTER_METHOD_TAKES_INSTANCES_AND_RETURNS_CASE_FUNCTION))
 class MyClass2 {}
 
 @ClassSwitch(
-    prefix: '\$single',
     classes: [State, Event],
-    syntaxMode: SYNTAX_MODE.SINGLE_METHOD_WITH_INSTANCES_AND_CASES)
+    options: ClassSwitchOptions(
+        switchFunctionPrefix: '\$single',
+        dslMode: DSL_MODE.SINGLE_METHOD_WITH_INSTANCES_AND_CASES))
 class MyClass3 {}
 
 class MyClassSwitcher extends _$MyClassSwitcher<String> {
@@ -95,7 +97,7 @@ void main() {
         //   - METHOD_TAKES_BOTH_INSTANCES_AND_CASES: provides the best autocomplete experience in intellij, but imo slightly harder to read code.
         //   - METHOD_TAKES_INSTANCES_RETURNING_CASE_FUNCTION: conceptually the simplest mode, however intellij provides no autocomplete help at all. Looks good also.
 
-        // SYNTAX_MODE: WRAPPER_CLASS
+        // DSL_MODE: WRAPPER_CLASS
         // The switch function returns a callable 'switch' Class wrapping the instance parameters (like a closure) which has a call method (can type .call to get autocomplete and delete after manually)
 
         // Force dartfmt to give each case a newline with a blank comment after the first case
@@ -115,14 +117,14 @@ void main() {
         expect(r, '3');
 
         // Or you can just use the Class directly (the function above provides a better autocomplete experience however)
-        r = $SwitchStateEvent(state, event)(
+        r = _$StateEventSwitchWrapper(state, event)(
             (rs, oe) => 'a', //
             (rs, ce) => 'b',
             (ls, oe) => 'c',
             (ls, ce) => 'd');
         expect(r, 'c');
 
-        // SYNTAX_MODE: METHOD_TAKES_BOTH_INSTANCES_AND_CASES
+        // DSL_MODE: METHOD_TAKES_BOTH_INSTANCES_AND_CASES
 
         // Or using the everything at once method. This provides the best intellij autocomplete experience
         // as selecting the method and hitting enter instantly generates the instances + case clauses in one key press.
@@ -136,7 +138,7 @@ void main() {
             (loadingState, closeEvent) => 4);
         expect(r, 3);
 
-        // SYNTAX_MODE: METHOD_TAKES_INSTANCES_RETURNING_CASE_FUNCTION
+        // DSL_MODE: METHOD_TAKES_INSTANCES_RETURNING_CASE_FUNCTION
         // Or finally just using anonymous methods which has no autocomplete support in intellij at all currently (there is an open issue).
         r = $outerStateEvent(state, event)(
             (runningState, openEvent) => true,

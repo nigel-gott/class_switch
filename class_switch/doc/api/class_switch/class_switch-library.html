@@ -1,0 +1,356 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, height=device-height, initial-scale=1, user-scalable=no">
+  <meta name="description" content="class_switch library API docs, for the Dart programming language.">
+  <title>class_switch library - Dart API</title>
+
+  
+  <link rel="preconnect" href="https://fonts.gstatic.com">
+  <link href="https://fonts.googleapis.com/css2?family=Roboto+Mono:ital,wght@0,300;0,400;0,500;0,700;1,400&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+  <link rel="stylesheet" href="../static-assets/github.css">
+  <link rel="stylesheet" href="../static-assets/styles.css">
+  <link rel="icon" href="../static-assets/favicon.png">
+
+  
+</head>
+
+<body data-base-href="../"
+      data-using-base-href="false">
+
+<div id="overlay-under-drawer"></div>
+
+<header id="title">
+  <button id="sidenav-left-toggle" type="button">&nbsp;</button>
+  <ol class="breadcrumbs gt-separated dark hidden-xs">
+    <li><a href="../index.html">class_switch</a></li>
+    <li class="self-crumb">class_switch library</li>
+  </ol>
+  <div class="self-name">class_switch</div>
+  <form class="search navbar-right" role="search">
+    <input type="text" id="search-box" autocomplete="off" disabled class="form-control typeahead" placeholder="Loading search...">
+  </form>
+</header>
+
+<main>
+
+  <div id="dartdoc-sidebar-left" class="sidebar sidebar-offcanvas-left">
+    <header id="header-search-sidebar" class="hidden-l">
+      <form class="search-sidebar" role="search">
+        <input type="text" id="search-sidebar" autocomplete="off" disabled class="form-control typeahead" placeholder="Loading search...">
+      </form>
+    </header>
+    
+    <ol class="breadcrumbs gt-separated dark hidden-l" id="sidebar-nav">
+      <li><a href="../index.html">class_switch</a></li>
+      <li class="self-crumb">class_switch library</li>
+    </ol>
+    
+    <h5><span class="package-name">class_switch</span> <span class="package-kind">package</span></h5>
+    <ol>
+          <li class="section-title">Libraries</li>
+          <li><a href="../class_switch/class_switch-library.html">class_switch</a></li>
+    </ol>
+  </div>
+
+  <div id="dartdoc-main-content" class="main-content">
+      <div><h1><span class="kind-library">class_switch</span> library     <a href="https://dart.dev/null-safety" class="feature feature-null-safety" title="Supports the null safety language feature.">Null safety</a>
+ </h1></div>
+
+    <section class="desc markdown">
+      <p><code>class_switch</code> lets you switch over all the sub-classes of a class instance
+in dart. It does this by providing a dart code generator and related
+annotations to mark classes you would like to have class switching functions
+and mixins generated for.
+It pairs wonderfully with bloc helping you get rid of event and state
+handling boilerplate. See the "Example With Bloc" section below for more.</p>
+<p>The <code>class_switch</code> library specifically contains the annotations used by the
+<code>class_switch_generator</code> library to generate code to switch over classes.</p>
+<h1 id="how-to-use">How To Use</h1>
+<ol>
+<li>Add <code>class_switch</code> as a normal dependency.</li>
+<li>Add <code>class_switch_generator</code> as a dev dependency.</li>
+<li>Annotate classes with <code>@ClassSwitch</code>.</li>
+<li>Ensure the sub classes of the annotated class / classes provided in the
+annotation parameter are in the same file as the annotation.</li>
+<li>Include <code>part 'YOUR_FILE_NAME.g.dart';</code> in the file containing the
+annotated class.</li>
+<li>Run <code>pub run build_runner watcher</code>.</li>
+<li>You can now switch over the annotated classes by using the generated
+$switchXXYY functions.</li>
+</ol>
+<h1 id="benefits-of-class-switch">Benefits of Class Switch</h1>
+<p>Some benefits of using class_switch are:</p>
+<ul>
+<li>An API as close as possible to being able to switch(){} over all sub
+classes of an annotated class.</li>
+<li>Compile time guarantees (when <code>pub run build_runner watcher</code> is
+running) that all possible sub classes are covered by a class switch.</li>
+<li>Autocompleteable class switch statements with all the cases ready to be
+filled in.</li>
+<li>Switcher mixin classes which provide a great autocomplete
+experience: add a new sub-type, then on any classes implementing the
+Mixin you can autocomplete the missing functions for the new
+sub-type.</li>
+<li>The ability to switch over multiple different base classes, resulting in
+switchers which have case statements for every possible combination of
+sub types. Super useful when used with the Bloc library!</li>
+<li>Highly customizable code generation via annotation options with multiple
+different configurable DSLs to match your usage and make the generated
+code as readable as possible.</li>
+</ul>
+<h1 id="important-caveats">Important Caveats:</h1>
+<ul>
+<li>When annotating a base class all of it's subclasses must be in the same
+file as or included via the part statement in the file with the annotation
+, otherwise class_switcher will not find sub-classes outside of this and
+the generated code will throw runtime errors if provided with these
+unknown sub-classes.</li>
+</ul>
+<h1 id="example-usages">Example Usages</h1>
+<p>ClassSwitch will generate for a class named <code>BaseClass</code> annotated with
+<code>@ClassSwitch()</code> (when using the default mode <code>DSL_MODE.CLASS_WRAPPER</code>):</p>
+<h2 id="global-switch-functions">Global $switch Functions</h2>
+<p>A global <code>$switchBaseClass</code> function which takes an instance of BaseClass
+  and returns a callable class which can then be provided with case
+  functions for every direct sub-class of BaseClass to perform the switch:</p>
+<pre class="language-dart"><code class="language-dart">  @ClassSwitch()
+  abstract class BaseClass {}
+  class A extends BaseClass {}
+  class B extends BaseClass {}
+
+  // The above will generate a function you can use like so:
+  var x = $switchBaseClass(A())(
+    (a) =&gt; 1, //
+    (b) =&gt; 2);
+  assert(x == 1);
+
+  // Get autocomplete to help you by first typing `.call` or `.cases` when
+  // writing your switch!
+  var x = $switchBaseClass(A()).cases(
+    (a) =&gt; 1, //
+    (b) =&gt; 2);
+  assert(x == 1);
+</code></pre>
+<h2 id="extension-methods">Extension Methods</h2>
+<p>An extension method on the annotated class called <code>.$switch</code> which when no
+  additional classes are provided via the classes parameter will switch
+  using the instance. When other classes are provided you then will need to
+  provide all instances at once.</p>
+<pre class="language-dart"><code class="language-dart">  @ClassSwitch()
+  abstract class BaseClass {}
+  class A extends BaseClass {}
+  class B extends BaseClass {}
+
+  // The above will an extension method you can use like so:
+  BaseClass anUnknownSubType = A();
+  var x = anUnknownSubType.$switch(
+    (a) =&gt; 1, //
+    (b) =&gt; 2);
+  assert(x == 1);
+</code></pre>
+<h2 id="switcher-mixin-classes">Switcher Mixin Classes</h2>
+<p>An abstract Switcher Mixin class which has:</p>
+<ul>
+<li>Abstract sub-class methods for each possible sub-class found in the same
+file as the annotated class.</li>
+<li>A <code>$switch</code> method which takes an instance of the annotated class and calls
+   the appropriate sub-class method given the type of the instance.</li>
+</ul>
+<pre class="language-dart"><code class="language-dart">  @ClassSwitch()
+  abstract class BaseClass {}
+  class A extends BaseClass {}
+  class B extends BaseClass {}
+
+  // The above will generate a mixin you can use like so:
+  class MySwitcher extends _$BaseClassSwitcher&lt;int&gt;{
+    @override
+    int a(A a) =&gt; 1;
+
+    @override
+    int b(B b) =&gt; 2;
+  };
+
+  assert(MySwitcher().$switch(A()) == 1);
+</code></pre>
+<h2 id="switcher-mixin-classes-with-defaults">Switcher Mixin Classes With Defaults</h2>
+<ul>
+<li>An abstract SwitcherWithDefault Mixin class which has:
+<ul>
+<li>An abstract default method allowing you to set a default for all types
+where you have not overridden the sub-class method.</li>
+<li>sub-class methods for each possible sub-class found in the same file as
+the annotated class, which will return the result of the default method
+unless overridden.</li>
+</ul>
+<pre class="language-dart"><code class="language-dart">@ClassSwitch()
+abstract class BaseClass {}
+class A extends BaseClass {}
+class B extends BaseClass {}
+
+// The above will generate a mixin you can use like so:
+class MySwitcher extends _$BaseClassSwitcherWithDefault&lt;int&gt;{
+  @override
+  int defaultValue() =&gt; 1;
+
+  @override
+  int b(B b) =&gt; 2;
+};
+
+assert(MySwitcher().$switch(A()) == 1);
+</code></pre>
+</li>
+</ul>
+<h2 id="switching-over-multiple-base-classes">Switching over Multiple Base Classes</h2>
+<p>The ability for all the above features to specify multiple different
+base classes to switch over. This is amazing for working with Bloc!</p>
+<h3 id="example-with-bloc">Example With Bloc</h3>
+<p>The example below shows how <code>class_switch</code> can be used with the Bloc library.
+However the multi base class switch works just as well without Bloc in any
+similar situation.</p>
+<pre class="language-dart"><code class="language-dart">  abstract class BlocState {}
+  class StateA extends BlocState {}
+  class StateB extends BlocState {}
+
+  abstract class BlocEvent {}
+  class EventA extends BlocEvent {}
+  class EventB extends BlocEvent {}
+
+  // This will generate a mixin you can use with Bloc like so
+  @ClassSwitch(classes:[BlocState, BlocEvent]}
+  class MyBloc extends Bloc&lt;BlocEvent, BlocState&gt; with _$MyBlocSwitcher&lt;BlocState&gt; {
+
+    @override
+    Stream&lt;BlocState&gt; mapEventToState(
+      TodoEvent event,
+    ) async* {
+      yield this.$switch(this.state, event);
+    }
+
+    @override
+    stateAEventA(StateA stateA, EventA eventA) =&gt; stateA;
+
+    @override
+    stateAEventB(StateA stateA, EventB eventB) =&gt; stateA;
+
+    @override
+    stateBEventA(StateB stateB, EventA eventA) =&gt; stateB;
+
+    @override
+    stateBEventA(StateB stateB, EventB eventB) =&gt; stateB;
+  }
+
+  // Or used as a function directly:
+  var r = $switchMyBloc(StateA(), EventA()).cases(
+    (State stateA, EventA eventA) =&gt; 'a a',
+    (State stateA, EventB eventB) =&gt; 'a b',
+    (State stateB, EventA eventA) =&gt; 'b a',
+    (State stateB, EventB eventB) =&gt; 'b b',
+  );
+  assert(r == 'a a');
+</code></pre>
+<h1 id="other-provided-dsls-and-generation-customization">Other provided DSLs and generation customization</h1>
+<p>See <a href="../class_switch/DSL_MODE-class.html">DSL_MODE</a> and <a href="../class_switch/ClassSwitchOptions-class.html">ClassSwitchOptions</a> for further information on the
+different DSL's <code>class_switch_generator</code> can make and how to customize the
+generated code.</p>
+<pre class="language-dart"><code class="language-dart">  @ClassSwitch()
+  abstract class BaseClass {}
+  class A extends BaseClass {}
+  class B extends BaseClass {}
+
+  // The above will generate a function you can use like so:
+  var x = $switchBaseClass(A())(
+    (a) =&gt; 1, //
+    (b) =&gt; 2);
+  assert(x == 1);
+</code></pre>
+    </section>
+    
+    <section class="summary offset-anchor" id="classes">
+      <h2>Classes</h2>
+
+      <dl>
+        <dt id="ClassSwitch">
+          <span class="name "><a href="../class_switch/ClassSwitch-class.html">ClassSwitch</a></span>         
+        </dt>
+        <dd>
+          Annotate a class with @ClassSwitch to get class switching helper code
+generated for you. <a href="../class_switch/ClassSwitch-class.html">[...]</a>
+        </dd>
+        <dt id="ClassSwitchOptions">
+          <span class="name "><a href="../class_switch/ClassSwitchOptions-class.html">ClassSwitchOptions</a></span>         
+        </dt>
+        <dd>
+          Various experimental options allowing deep customization of the generated
+class switch code. These options aren't global and only affect the generated
+code for the annotation where they are provided. If you have a common set of
+options you use regularly create an alias for them to save yourself typing
+time! <a href="../class_switch/ClassSwitchOptions-class.html">[...]</a>
+        </dd>
+      </dl>
+    </section>
+
+
+
+
+
+
+    <section class="summary offset-anchor" id="enums">
+      <h2>Enums</h2>
+
+      <dl>
+        <dt id="DSL_MODE">
+          <span class="name "><a href="../class_switch/DSL_MODE-class.html">DSL_MODE</a></span>         
+        </dt>
+        <dd>
+           
+        </dd>
+      </dl>
+    </section>
+
+
+
+  </div> <!-- /.main-content -->
+
+  <div id="dartdoc-sidebar-right" class="sidebar sidebar-offcanvas-right">
+    <h5>class_switch library</h5>
+    <ol>
+  <li class="section-title"><a href="../class_switch/class_switch-library.html#classes">Classes</a></li>
+  <li><a href="../class_switch/ClassSwitch-class.html">ClassSwitch</a></li>
+  <li><a href="../class_switch/ClassSwitchOptions-class.html">ClassSwitchOptions</a></li>
+
+
+
+
+
+
+  <li class="section-title"><a href="../class_switch/class_switch-library.html#enums">Enums</a></li>
+  <li><a href="../class_switch/DSL_MODE-class.html">DSL_MODE</a></li>
+
+
+</ol>
+
+  </div><!--/sidebar-offcanvas-right-->
+
+</main>
+
+<footer>
+  <span class="no-break">
+    class_switch
+      0.0.1-dev.0
+  </span>
+
+  
+</footer>
+
+<script src="../static-assets/highlight.pack.js"></script>
+<script src="../static-assets/script.js"></script>
+
+
+
+</body>
+
+</html>

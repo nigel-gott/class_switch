@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, height=device-height, initial-scale=1, user-scalable=no">
+  <meta name="description" content="API docs for the abstractMethodSubTypeSeparator property from the ClassSwitchOptions class, for the Dart programming language.">
+  <title>abstractMethodSubTypeSeparator property - ClassSwitchOptions class - class_switch library - Dart API</title>
+
+  
+  <link rel="preconnect" href="https://fonts.gstatic.com">
+  <link href="https://fonts.googleapis.com/css2?family=Roboto+Mono:ital,wght@0,300;0,400;0,500;0,700;1,400&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+  <link rel="stylesheet" href="../../static-assets/github.css">
+  <link rel="stylesheet" href="../../static-assets/styles.css">
+  <link rel="icon" href="../../static-assets/favicon.png">
+
+  
+</head>
+
+<body data-base-href="../../"
+      data-using-base-href="false">
+
+<div id="overlay-under-drawer"></div>
+
+<header id="title">
+  <button id="sidenav-left-toggle" type="button">&nbsp;</button>
+  <ol class="breadcrumbs gt-separated dark hidden-xs">
+    <li><a href="../../index.html">class_switch</a></li>
+    <li><a href="../../class_switch/class_switch-library.html">class_switch</a></li>
+    <li><a href="../../class_switch/ClassSwitchOptions-class.html">ClassSwitchOptions</a></li>
+    <li class="self-crumb">abstractMethodSubTypeSeparator property</li>
+  </ol>
+  <div class="self-name">abstractMethodSubTypeSeparator</div>
+  <form class="search navbar-right" role="search">
+    <input type="text" id="search-box" autocomplete="off" disabled class="form-control typeahead" placeholder="Loading search...">
+  </form>
+</header>
+
+<main>
+
+  <div id="dartdoc-sidebar-left" class="sidebar sidebar-offcanvas-left">
+    <header id="header-search-sidebar" class="hidden-l">
+      <form class="search-sidebar" role="search">
+        <input type="text" id="search-sidebar" autocomplete="off" disabled class="form-control typeahead" placeholder="Loading search...">
+      </form>
+    </header>
+    
+    <ol class="breadcrumbs gt-separated dark hidden-l" id="sidebar-nav">
+      <li><a href="../../index.html">class_switch</a></li>
+      <li><a href="../../class_switch/class_switch-library.html">class_switch</a></li>
+      <li><a href="../../class_switch/ClassSwitchOptions-class.html">ClassSwitchOptions</a></li>
+      <li class="self-crumb">abstractMethodSubTypeSeparator property</li>
+    </ol>
+    
+    <h5>ClassSwitchOptions class</h5>
+    <ol>
+
+    <li class="section-title"><a href="../../class_switch/ClassSwitchOptions-class.html#constructors">Constructors</a></li>
+    <li><a href="../../class_switch/ClassSwitchOptions/ClassSwitchOptions.html">ClassSwitchOptions</a></li>
+
+
+    <li class="section-title">
+      <a href="../../class_switch/ClassSwitchOptions-class.html#instance-properties">Properties</a>
+    </li>
+    <li><a href="../../class_switch/ClassSwitchOptions/abstractMethodPrefix.html">abstractMethodPrefix</a></li>
+    <li><a href="../../class_switch/ClassSwitchOptions/abstractMethodSubTypeSeparator.html">abstractMethodSubTypeSeparator</a></li>
+    <li><a href="../../class_switch/ClassSwitchOptions/dslMode.html">dslMode</a></li>
+    <li class="inherited"><a href="https://api.dart.dev/stable/2.12.2/dart-core/Object/hashCode.html">hashCode</a></li>
+    <li class="inherited"><a href="https://api.dart.dev/stable/2.12.2/dart-core/Object/runtimeType.html">runtimeType</a></li>
+    <li><a href="../../class_switch/ClassSwitchOptions/switchFunctionPrefix.html">switchFunctionPrefix</a></li>
+
+    <li class="section-title inherited"><a href="../../class_switch/ClassSwitchOptions-class.html#instance-methods">Methods</a></li>
+    <li class="inherited"><a href="https://api.dart.dev/stable/2.12.2/dart-core/Object/noSuchMethod.html">noSuchMethod</a></li>
+    <li class="inherited"><a href="https://api.dart.dev/stable/2.12.2/dart-core/Object/toString.html">toString</a></li>
+
+    <li class="section-title inherited"><a href="../../class_switch/ClassSwitchOptions-class.html#operators">Operators</a></li>
+    <li class="inherited"><a href="https://api.dart.dev/stable/2.12.2/dart-core/Object/operator_equals.html">operator ==</a></li>
+
+
+
+
+</ol>
+
+  </div><!--/.sidebar-offcanvas-->
+
+  <div id="dartdoc-main-content" class="main-content">
+      <div><h1><span class="kind-property">abstractMethodSubTypeSeparator</span> property     <a href="https://dart.dev/null-safety" class="feature feature-null-safety" title="Supports the null safety language feature.">Null safety</a>
+</h1></div>
+
+        <section class="multi-line-signature">
+          <a href="https://api.dart.dev/stable/2.12.2/dart-core/String-class.html">String</a>
+          <span class="name ">abstractMethodSubTypeSeparator</span>          <div class="features">final</div>
+        </section>
+        <section class="desc markdown">
+          <p>For the generated Switcher classes this is an optional separator that will
+be placed between the sub type names in the abstract method names.</p>
+<p>For example <code>abstractMethodSubTypeSeparator: 'With'</code> results in abstract
+methods named like <code>subTypeAWithOtherClassSubTypeA</code>. A full example is
+shown below:</p>
+<pre class="language-dart"><code class="language-dart">abstract class Event {}
+class EventA extends Event {}
+class EventB extends Event {}
+
+abstract class State {}
+class StateA extends State {}
+class StateB extends State {}
+
+// This will generate a Switcher which when mixed in has abstract
+// methods named using the provided abstractMethodSubTypeSeparator:
+@ClassSwitch(
+  classes: [State, Event],
+  options: ClassSwitchOptions(abstractMethodSubTypeSeparator:"With"))
+class MyStateAndEventHandler with _$MyStateAndEventHandlerSwitcher {
+  @override
+  int stateAWithEventA(StateA stateA, EventA eventA) =&gt; 1;
+  @override
+  int stateAWithEventB(StateA stateA, EventB eventB) =&gt; 2;
+  @override
+  int stateBWithEventA(StateB stateB, EventA eventB) =&gt; 3;
+  @override
+  int stateBWithEventB(StateB stateB, EventB eventB) =&gt; 4;
+}
+
+</code></pre>
+<p>This is useful for when you want to create a more readable API for one of
+your switcher classes when switching over multiple classes at once.</p>
+        </section>
+                <section class="summary source-code" id="source">
+          <h2><span>Implementation</span></h2>
+          <pre class="language-dart"><code class="language-dart">final String abstractMethodSubTypeSeparator;
+
+</code></pre>
+        </section>
+
+  </div> <!-- /.main-content -->
+
+  <div id="dartdoc-sidebar-right" class="sidebar sidebar-offcanvas-right">
+  </div><!--/.sidebar-offcanvas-->
+
+</main>
+
+<footer>
+  <span class="no-break">
+    class_switch
+      0.0.1-dev.0
+  </span>
+
+  
+</footer>
+
+<script src="../../static-assets/highlight.pack.js"></script>
+<script src="../../static-assets/script.js"></script>
+
+
+
+</body>
+
+</html>

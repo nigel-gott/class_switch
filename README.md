@@ -1,51 +1,223 @@
 [![Build Status](https://travis-ci.com/nigel-gott/class_switch.svg?branch=master)](https://travis-ci.com/nigel-gott/class_switch)
 
-A dart code generator which allows you to work with sub classes in a safer manner.
+`class_switch` lets you switch over all the sub-classes of a class instance
+in dart. It does this by providing a dart code generator and related
+annotations to mark classes you would like to have class switching functions
+and mixins generated for.
+It pairs wonderfully with bloc helping you get rid of event and state
+handling boilerplate. See the "Example With Bloc" section below for more.
 
-A class annotated with @ClassSwitch() will have two different dispatcher classes 
-generated:
-* `_${AnnotatedClassName}Dispatcher<T>` which has abstract methods for each sub-class of the annotated class.
-  * This class will also have a static method `dispatcher`
-* `_${AnnotatedClassName}DispatcherWithDefaults<T>` which has methods for each sub-class 
-  of the annotated class returning the abstract method default.
+The `class_switch` library specifically contains the annotations used by the
+`class_switch_generator` library to generate code to switch over classes.
 
-## Setup
+# How To Use
 
-## Usage
+1. Add `class_switch` as a normal dependency.
+2. Add `class_switch_generator` as a dev dependency.
+3. Annotate classes with `@ClassSwitch`.
+4. Ensure the sub classes of the annotated class / classes provided in the
+   annotation parameter are in the same file as the annotation.
+5. Include `part 'YOUR_FILE_NAME.g.dart';` in the file containing the
+   annotated class.
+6. Run `pub run build_runner watcher`.
+7. You can now switch over the annotated classes by using the generated
+   $switchXXYY functions.
 
+# Benefits of Class Switch
 
-```dart
-import 'package:class_switch/class_switch.dart';
+Some benefits of using class_switch are:
+- An API as close as possible to being able to switch(){} over all sub
+  classes of an annotated class.
+- Compile time guarantees (when `pub run build_runner watcher` is
+  running) that all possible sub classes are covered by a class switch.
+- Autocompleteable class switch statements with all the cases ready to be
+  filled in.
+- Switcher mixin classes which provide a great autocomplete
+  experience: add a new sub-type, then on any classes implementing the
+  Mixin you can autocomplete the missing functions for the new
+  sub-type.
+- The ability to switch over multiple different base classes, resulting in
+  switchers which have case statements for every possible combination of
+  sub types. Super useful when used with the Bloc library!
+- Highly customizable code generation via annotation options with multiple
+  different configurable DSLs to match your usage and make the generated
+  code as readable as possible.
 
-part 'base.g.dart';
+# Important Caveats:
+* When annotating a base class all of it's subclasses must be in the same
+  file as or included via the part statement in the file with the annotation
+  , otherwise class_switcher will not find sub-classes outside of this and
+  the generated code will throw runtime errors if provided with these
+  unknown sub-classes.
 
-main() {
-  // Prints 1.
-  print(_$FruitDispatcher.acceptFunc((apple) {
-    return 1;
-  }, (orange) {
-    return 2;
-  })(Apple()));
-}
+# Example Usages
 
-@ClassSwitch()
-abstract class Fruit {}
+ClassSwitch will generate for a class named `BaseClass` annotated with
+`@ClassSwitch()` (when using the default mode [DSL_MODE.CLASS_WRAPPER]):
+## Global $switch Functions
+A global `$switchBaseClass` function which takes an instance of BaseClass
+and returns a callable class which can then be provided with case
+functions for every direct sub-class of BaseClass to perform the switch:
+   ```dart
+   @ClassSwitch()
+   abstract class BaseClass {}
+   class A extends BaseClass {}
+   class B extends BaseClass {}
 
-class Apple extends Fruit {}
+   // The above will generate a function you can use like so:
+   var x = $switchBaseClass(A())(
+     (a) => 1, //
+     (b) => 2);
+   assert(x == 1);
+   
+   // Get autocomplete to help you by first typing `.call` or `.cases` when
+   // writing your switch!
+   x = $switchBaseClass(A()).cases(
+      (a) => 1, //
+      (b) => 2);
+   assert(x == 1);
+   ```
+## Extension Methods
+An extension method on the annotated class called `.$switch` which when no
+additional classes are provided via the classes parameter will switch
+using the instance. When other classes are provided you then will need to
+provide all instances at once.
+   ```dart
+   @ClassSwitch()
+   abstract class BaseClass {}
+   class A extends BaseClass {}
+   class B extends BaseClass {}
 
-class Orange extends Fruit {}
+   // The above will an extension method you can use like so:
+   BaseClass anUnknownSubType = A();
+   var x = anUnknownSubType.$switch(
+     (a) => 1, //
+     (b) => 2);
+   assert(x == 1);
+   ```
+## Switcher Mixin Classes
+An abstract Switcher Mixin class which has:
+* Abstract sub-class methods for each possible sub-class found in the same
+  file as the annotated class.
+* A `$switch` method which takes an instance of the annotated class and calls
+  the appropriate sub-class method given the type of the instance.
 
-class MyFruitHandler extends _$FruitDispatcher<int> {
-  @override
-  int apple(Apple apple) {
-    return 1;
-  }
+   ```dart
+   @ClassSwitch()
+   abstract class BaseClass {}
+   class A extends BaseClass {}
+   class B extends BaseClass {}
 
-  @override
-  int orange(Orange orange) {
-    return 2;
-  }
-}
+   // The above will generate a mixin you can use like so:
+   class MySwitcher extends _$BaseClassSwitcher<int>{
+     @override
+     int a(A a) => 1;
 
+     @override
+     int b(B b) => 2;
+   };
+
+   assert(MySwitcher().$switch(A()) == 1);
+   ```
+## Switcher Mixin Classes With Defaults
+* An abstract SwitcherWithDefault Mixin class which has:
+    * An abstract default method allowing you to set a default for all types
+      where you have not overridden the sub-class method.
+    * sub-class methods for each possible sub-class found in the same file as
+      the annotated class, which will return the result of the default method
+      unless overridden.
+  ```dart
+  @ClassSwitch()
+  abstract class BaseClass {}
+  class A extends BaseClass {}
+  class B extends BaseClass {}
+
+  // The above will generate a mixin you can use like so:
+  class MySwitcher extends _$BaseClassSwitcherWithDefault<int>{
+    @override
+    int defaultValue() => 1;
+
+    @override
+    int b(B b) => 2;
+  };
+
+  assert(MySwitcher().$switch(A()) == 1);
+  ```
+## Switching over Multiple Base Classes
+The ability for all the above features to specify multiple different
+base classes to switch over. This is amazing for working with bloc!
+### Example With Bloc
+The example below shows how `class_switch` can be used with the Bloc library.
+However the multi base class switch works just as well without Bloc in any
+similar situation.
+   ```dart
+   abstract class BlocState {}
+   class StateA extends BlocState {}
+   class StateB extends BlocState {}
+
+   abstract class BlocEvent {}
+   class EventA extends BlocEvent {}
+   class EventB extends BlocEvent {}
+
+   // This will generate a mixin you can use with Bloc like so:
+   @ClassSwitch(classes:[BlocState, BlocEvent]}
+   class MyBloc extends Bloc<BlocEvent, BlocState> with _$MyBlocSwitcher<BlocState> {
+
+     @override
+     Stream<BlocState> mapEventToState(
+       TodoEvent event,
+     ) async* {
+       yield this.$switch(this.state, event);
+     }
+
+     @override
+     stateAEventA(StateA stateA, EventA eventA) => stateA;
+
+     @override
+     stateAEventB(StateA stateA, EventB eventB) => stateA;
+
+     @override
+     stateBEventA(StateB stateB, EventA eventA) => stateB;
+
+     @override
+     stateBEventA(StateB stateB, EventB eventB) => stateB;
+   }
+
+   // Or used as a function directly:
+   var r = $switchMyBloc(StateA(), EventA()).cases(
+     (State stateA, EventA eventA) => 'a a',
+     (State stateA, EventB eventB) => 'a b',
+     (State stateB, EventA eventA) => 'b a',
+     (State stateB, EventB eventB) => 'b b',
+   );
+   assert(r == 'a a');
+   ```
+
+# Other provided DSLs and generation customization
+See [DSL_MODE] and [ClassSwitchOptions] for further information on the
+different DSL's `class_switch_generator` can make and how to customize the
+generated code.
+
+# Subfolder Guide
+1. `class_switch` is the published dart library containing the generator annotations.
+2. `class_switch_client_test` contains a collection of acceptance tests which run over 
+   class_switch generated code. A great place to look for examples of how to use all
+   of the various features.
+3. `class_switch_generator` is the published dart dev library which actually generates 
+   the class switching code.
+4. `class_switch_project_example` is an example dart project showing how to use 
+   class_switch.
+   
+# Need help or want to chat? 
+
+Find me in [our discord](https://discord.gg/5tjXhYJxdA) if you have any questions, ideas
+or need help! Or raise an issue on this repo.
+
+# Contributing
+
+Feel free to open pull requests with any and all of your ideas. Please ensure the build 
+is passing locally by running:
 ```
-
+pub global activate mono_repo
+mono_repo presubmit
+```

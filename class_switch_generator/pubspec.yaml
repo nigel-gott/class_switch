@@ -11,9 +11,7 @@ dependencies:
   build: ^2.0.0
   source_gen: ^1.0.0
   optional: ^6.0.0-nullsafety.0
-#  class_switch: ^0.0.1-dev.0
-  class_switch:
-    path: ../class_switch
+  class_switch: ^0.0.1-dev.0
   analyzer: ^1.3.0
   meta: ^1.3.0
   generic_reader: ^0.2.2

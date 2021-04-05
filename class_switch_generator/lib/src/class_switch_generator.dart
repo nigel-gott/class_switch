@@ -33,16 +33,27 @@ class ClassSwitchGenerator extends Generator {
         : [_findSubTypesForSingleClass(library, classElement)];
     subTypes.forEach((e) => _validateSubType(e, classes.isNotEmpty));
 
-    ConstantReader read = annotation.read('syntaxMode');
+    var optionsReader = annotation.read('options');
+
+    ClassSwitchOptions generatorOptions =
+        extractOptionsFromAnnotation(optionsReader);
+
     ClassSwitchClassGenerator classSwitchCodeBuilder =
         ClassSwitchClassGenerator.create(
-            classElement,
-            subTypes,
-            annotation.read('prefix').stringValue,
-            annotation.read('methodSeparator').stringValue,
-            annotation.read('methodPrefix').stringValue,
-            read.enumValue<SYNTAX_MODE>());
+            classElement, subTypes, generatorOptions);
     return classSwitchCodeBuilder.generateAll();
+  }
+
+  ClassSwitchOptions extractOptionsFromAnnotation(
+      ConstantReader optionsReader) {
+    return ClassSwitchOptions(
+        switchFunctionPrefix:
+            optionsReader.read('switchFunctionPrefix').stringValue,
+        abstractMethodSubTypeSeparator:
+            optionsReader.read('abstractMethodSubTypeSeparator').stringValue,
+        abstractMethodPrefix:
+            optionsReader.read('abstractMethodPrefix').stringValue,
+        dslMode: optionsReader.read('dslMode').enumValue<DSL_MODE>());
   }
 
   static List<TypeWithSubTypes> _findSubTypesForAllClasses(

@@ -2,10 +2,56 @@ import 'package:class_switch/class_switch.dart';
 import 'package:source_gen_test/annotations.dart';
 
 @ShouldGenerate(r'''
-abstract class _$TargetClassDispatcherWithDefault<T> {
-  T accept(Base base, OtherBase otherBase) {
-    return _$TargetClassDispatcher.acceptFunc(
-        aOtherA, aOtherB, bOtherA, bOtherB)(base, otherBase);
+class _$BaseOtherBaseSwitchWrapper<T> {
+  final Base baseAttr;
+  final OtherBase otherBaseAttr;
+  _$BaseOtherBaseSwitchWrapper(this.baseAttr, this.otherBaseAttr);
+  T call(
+      T Function(A a, OtherA otherA) aOtherA,
+      T Function(A a, OtherB otherB) aOtherB,
+      T Function(B b, OtherA otherA) bOtherA,
+      T Function(B b, OtherB otherB) bOtherB) {
+    var baseParam = baseAttr;
+    var otherBaseParam = otherBaseAttr;
+    if (baseParam is A && otherBaseParam is OtherA) {
+      return aOtherA(baseParam, otherBaseParam);
+    } else if (baseParam is A && otherBaseParam is OtherB) {
+      return aOtherB(baseParam, otherBaseParam);
+    } else if (baseParam is B && otherBaseParam is OtherA) {
+      return bOtherA(baseParam, otherBaseParam);
+    } else if (baseParam is B && otherBaseParam is OtherB) {
+      return bOtherB(baseParam, otherBaseParam);
+    } else {
+      throw ArgumentError(
+          'Unknown class given to \$switch: $baseAttr, $otherBaseAttr. All sub classes must be in the same or imported into the file with the annotated class, or have you added a new sub class for any of: Base, OtherBase without running pub run build_runner build?. ');
+    }
+  }
+
+  T cases(
+      T Function(A a, OtherA otherA) aOtherA,
+      T Function(A a, OtherB otherB) aOtherB,
+      T Function(B b, OtherA otherA) bOtherA,
+      T Function(B b, OtherB otherB) bOtherB) {
+    return call(aOtherA, aOtherB, bOtherA, bOtherB);
+  }
+}
+
+_$BaseOtherBaseSwitchWrapper<T> $switchBaseOtherBase<T>(
+    Base baseParam, OtherBase otherBaseParam) {
+  return _$BaseOtherBaseSwitchWrapper<T>(baseParam, otherBaseParam);
+}
+
+extension _$TargetClassSwitchExtension on TargetClass {
+  _$BaseOtherBaseSwitchWrapper<T> $switch<T>(
+      Base baseParam, OtherBase otherBaseParam) {
+    return _$BaseOtherBaseSwitchWrapper<T>(baseParam, otherBaseParam);
+  }
+}
+
+abstract class _$TargetClassSwitcherWithDefault<T> {
+  T $switch(Base base, OtherBase otherBase) {
+    return _$BaseOtherBaseSwitchWrapper<T>(base, otherBase)(
+        aOtherA, aOtherB, bOtherA, bOtherB);
   }
 
   T defaultValueA() {
@@ -34,31 +80,10 @@ abstract class _$TargetClassDispatcherWithDefault<T> {
   }
 }
 
-abstract class _$TargetClassDispatcher<T> {
-  T accept(Base base, OtherBase otherBase) {
-    return _$TargetClassDispatcher.acceptFunc(
-        aOtherA, aOtherB, bOtherA, bOtherB)(base, otherBase);
-  }
-
-  static T Function(Base, OtherBase) acceptFunc<T>(
-      T Function(A, OtherA) aOtherA,
-      T Function(A, OtherB) aOtherB,
-      T Function(B, OtherA) bOtherA,
-      T Function(B, OtherB) bOtherB) {
-    return (baseParam, otherBaseParam) {
-      if (baseParam is A && otherBaseParam is OtherA) {
-        return aOtherA(baseParam, otherBaseParam);
-      } else if (baseParam is A && otherBaseParam is OtherB) {
-        return aOtherB(baseParam, otherBaseParam);
-      } else if (baseParam is B && otherBaseParam is OtherA) {
-        return bOtherA(baseParam, otherBaseParam);
-      } else if (baseParam is B && otherBaseParam is OtherB) {
-        return bOtherB(baseParam, otherBaseParam);
-      } else {
-        throw ArgumentError(
-            "Unknown class given to one or all of class_switch's accept args: $baseParam, $otherBaseParam. Have you added a new sub class for any of: Base, OtherBase without running pub run build_runner build?. ");
-      }
-    };
+abstract class _$TargetClassSwitcher<T> {
+  T $switch(Base base, OtherBase otherBase) {
+    return _$BaseOtherBaseSwitchWrapper<T>(base, otherBase)(
+        aOtherA, aOtherB, bOtherA, bOtherB);
   }
 
   T aOtherA(A a, OtherA otherA);

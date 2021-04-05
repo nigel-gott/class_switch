@@ -22,17 +22,14 @@ class ClassSwitchClassGenerator {
   final List<BaseNameWithSubNames> _classes;
   final String _targetClassName;
   final List<List<String>> _subTypePermutations;
-  final String prefix;
-  final String methodPrefix;
-  final String methodSeparator;
-  final SYNTAX_MODE syntaxMode;
+  final ClassSwitchOptions options;
 
   String get _switchClassNamePostfix => 'Switcher';
 
   String get _switcherClassName =>
       '_\$' + _targetClassName + _switchClassNamePostfix;
 
-  String get _switchFunctionPrefix => prefix;
+  String get _switchFunctionPrefix => options.switchFunctionPrefix;
 
   String get _switchFunctionName =>
       _switchFunctionPrefix + _classes.map((e) => e.baseName).join('');
@@ -45,24 +42,16 @@ class ClassSwitchClassGenerator {
   String get _extensionMethodName => _switchFunctionPrefix;
 
   String get _wrapperClassName =>
-      '\$Switch${_classes.map((e) => e.baseName).join('')}';
+      '_\$${_classes.map((e) => e.baseName).join('')}SwitchWrapper';
 
-  ClassSwitchClassGenerator._withClasses(
-      this._targetClassName,
-      this._classes,
-      this._subTypePermutations,
-      this.prefix,
-      this.methodSeparator,
-      this.methodPrefix,
-      this.syntaxMode);
+  ClassSwitchClassGenerator._withClasses(this._targetClassName, this._classes,
+      this._subTypePermutations, this.options);
 
   factory ClassSwitchClassGenerator.create(
-      ClassElement _baseClass,
-      List<TypeWithSubTypes> _subClasses,
-      String prefix,
-      String methodPrefix,
-      String methodSeparator,
-      SYNTAX_MODE syntaxMode) {
+    ClassElement _baseClass,
+    List<TypeWithSubTypes> _subClasses,
+    ClassSwitchOptions options,
+  ) {
     var _classes = [
       ..._subClasses.map((TypeWithSubTypes e) {
         return BaseNameWithSubNames(e.type.name, [
@@ -74,13 +63,13 @@ class ClassSwitchClassGenerator {
     var algo =
         PermutationAlgorithmStrings(_classes.map((e) => e.subNames).toList());
 
-    return ClassSwitchClassGenerator._withClasses(_baseClass.name, _classes,
-        algo.permutations(), prefix, methodPrefix, methodSeparator, syntaxMode);
+    return ClassSwitchClassGenerator._withClasses(
+        _baseClass.name, _classes, algo.permutations(), options);
   }
 
   String generateAll() {
     var r = [
-      if (syntaxMode == SYNTAX_MODE.WRAPPER_CLASS) generateWrapperClass(),
+      if (options.dslMode == DSL_MODE.WRAPPER_CLASS) generateWrapperClass(),
       generateSwitchFunction(),
       generateExtensionMethod(),
       generateDispatcherClass(),
@@ -95,11 +84,7 @@ class ClassSwitchClassGenerator {
   }
 
   String generateExtensionMethod() {
-    var parameters = _subTypePermutations.map((subTypePermutation) {
-      var funcParams = subTypePermutation.join(', ');
-      var name = _classMethodName(subTypePermutation);
-      return 'T Function($funcParams) $name';
-    });
+    var parameters = caseParameters();
     var parametersNames = _subTypePermutations.map((subTypePermutation) {
       return _classMethodName(subTypePermutation);
     }).join(', ');
@@ -112,17 +97,17 @@ class ClassSwitchClassGenerator {
             ..whichHasATemplateParameter('T')
             ..withParameters(parameters)
             ..andReturns('T');
-      switch (syntaxMode) {
-        case SYNTAX_MODE.WRAPPER_CLASS:
+      switch (options.dslMode) {
+        case DSL_MODE.WRAPPER_CLASS:
           extensionMethodBuilder
             ..withBody('return $_wrapperClassName<T>(this)($parametersNames);');
           break;
-        case SYNTAX_MODE.SINGLE_METHOD_WITH_INSTANCES_AND_CASES:
+        case DSL_MODE.SINGLE_METHOD_WITH_INSTANCES_AND_CASES:
           extensionMethodBuilder
             ..withBody(
                 'return $_switchFunctionName<T>(this, $parametersNames);');
           break;
-        case SYNTAX_MODE.OUTER_METHOD_TAKES_INSTANCES_AND_RETURNS_CASE_FUNCTION:
+        case DSL_MODE.OUTER_METHOD_TAKES_INSTANCES_AND_RETURNS_CASE_FUNCTION:
           extensionMethodBuilder
             ..withBody('return $_switchFunctionName'
                 '<T>(this)($parametersNames);');
@@ -135,11 +120,7 @@ class ClassSwitchClassGenerator {
       var instanceParamNames =
           _classes.map((e) => '${_lowerFirstChar(e.baseName)}Param').join(',');
 
-      var parameters = _subTypePermutations.map((subTypePermutation) {
-        var funcParams = subTypePermutation.join(', ');
-        var name = _classMethodName(subTypePermutation);
-        return 'T Function($funcParams) $name';
-      });
+      var parameters = caseParameters();
       var parameterNames = _subTypePermutations.map((subTypePermutation) {
         return _classMethodName(subTypePermutation);
       }).join(', ');
@@ -148,14 +129,14 @@ class ClassSwitchClassGenerator {
           ExtensionBuilder(_targetClassName, _extensionMethodNamespace);
       var methodBuilder = extensionBuilder.addMethod(_extensionMethodName)
         ..whichHasATemplateParameter('T');
-      switch (syntaxMode) {
-        case SYNTAX_MODE.WRAPPER_CLASS:
+      switch (options.dslMode) {
+        case DSL_MODE.WRAPPER_CLASS:
           methodBuilder
             ..withParameters(instanceParams)
             ..withBody('''return $_wrapperClassName<T>($instanceParamNames);''')
             ..andReturns('$_wrapperClassName<T>');
           break;
-        case SYNTAX_MODE.SINGLE_METHOD_WITH_INSTANCES_AND_CASES:
+        case DSL_MODE.SINGLE_METHOD_WITH_INSTANCES_AND_CASES:
           methodBuilder
             ..withParameters(instanceParams)
             ..withParameters(parameters)
@@ -163,7 +144,7 @@ class ClassSwitchClassGenerator {
                 '''return $_switchFunctionName<T>($instanceParamNames, $parameterNames);''')
             ..andReturns('T');
           break;
-        case SYNTAX_MODE.OUTER_METHOD_TAKES_INSTANCES_AND_RETURNS_CASE_FUNCTION:
+        case DSL_MODE.OUTER_METHOD_TAKES_INSTANCES_AND_RETURNS_CASE_FUNCTION:
           methodBuilder
             ..withParameters(instanceParams)
             ..withBody(
@@ -175,9 +156,18 @@ class ClassSwitchClassGenerator {
     }
   }
 
+  Iterable<String> caseParameters() {
+    return _subTypePermutations.map((subTypePermutation) {
+      var funcParams =
+          subTypePermutation.map((e) => '$e ${_lowerFirstChar(e)}').join(', ');
+      var name = _classMethodName(subTypePermutation);
+      return 'T Function($funcParams) $name';
+    });
+  }
+
   String generateSwitchFunction() {
-    switch (syntaxMode) {
-      case SYNTAX_MODE.WRAPPER_CLASS:
+    switch (options.dslMode) {
+      case DSL_MODE.WRAPPER_CLASS:
         var params = _classes
             .map((e) => '${e.baseName} ${_lowerFirstChar(e.baseName)}Param');
         return (MethodBuilder(_switchFunctionName)
@@ -186,27 +176,19 @@ class ClassSwitchClassGenerator {
               ..withBody(_generateSwitchFunctionBody())
               ..andReturns('$_wrapperClassName<T>'))
             .build();
-      case SYNTAX_MODE.SINGLE_METHOD_WITH_INSTANCES_AND_CASES:
+      case DSL_MODE.SINGLE_METHOD_WITH_INSTANCES_AND_CASES:
         var parameters = (_classes.map(
                 (e) => '${e.baseName} ${_lowerFirstChar(e.baseName)}Param'))
             .toList();
-        parameters.addAll(_subTypePermutations.map((subTypePermutation) {
-          var funcParams = subTypePermutation.join(', ');
-          var name = _classMethodName(subTypePermutation);
-          return 'T Function($funcParams) $name';
-        }).toList());
+        parameters.addAll(caseParameters().toList());
         return (MethodBuilder(_switchFunctionName)
               ..whichHasATemplateParameter('T')
               ..withParameters(parameters)
               ..withBody(_generateSwitchFunctionBody())
               ..andReturns('T'))
             .build();
-      case SYNTAX_MODE.OUTER_METHOD_TAKES_INSTANCES_AND_RETURNS_CASE_FUNCTION:
-        var parameters = _subTypePermutations.map((subTypePermutation) {
-          var funcParams = subTypePermutation.join(', ');
-          var name = _classMethodName(subTypePermutation);
-          return 'T Function($funcParams) $name';
-        }).join(', ');
+      case DSL_MODE.OUTER_METHOD_TAKES_INSTANCES_AND_RETURNS_CASE_FUNCTION:
+        var parameters = caseParameters().join(', ');
         var params = _classes
             .map((e) => '${e.baseName} ${_lowerFirstChar(e.baseName)}Param');
         return (MethodBuilder(_switchFunctionName)
@@ -295,14 +277,14 @@ class ClassSwitchClassGenerator {
         .toList();
     String methodArgs = methodNames.join(',');
     var body = '';
-    switch (syntaxMode) {
-      case SYNTAX_MODE.WRAPPER_CLASS:
+    switch (options.dslMode) {
+      case DSL_MODE.WRAPPER_CLASS:
         body = 'return $_wrapperClassName<T>($instanceArgs)($methodArgs);';
         break;
-      case SYNTAX_MODE.SINGLE_METHOD_WITH_INSTANCES_AND_CASES:
+      case DSL_MODE.SINGLE_METHOD_WITH_INSTANCES_AND_CASES:
         body = 'return $_switchFunctionName<T>($instanceArgs, $methodArgs);';
         break;
-      case SYNTAX_MODE.OUTER_METHOD_TAKES_INSTANCES_AND_RETURNS_CASE_FUNCTION:
+      case DSL_MODE.OUTER_METHOD_TAKES_INSTANCES_AND_RETURNS_CASE_FUNCTION:
         body = 'return $_switchFunctionName<T>'
             '($instanceArgs)($methodArgs);';
         break;
@@ -314,13 +296,13 @@ class ClassSwitchClassGenerator {
   }
 
   String _generateSwitchFunctionBody() {
-    switch (syntaxMode) {
-      case SYNTAX_MODE.WRAPPER_CLASS:
+    switch (options.dslMode) {
+      case DSL_MODE.WRAPPER_CLASS:
         var params = _classes
             .map((e) => '${_lowerFirstChar(e.baseName)}Param')
             .join(', ');
         return 'return $_wrapperClassName<T>($params);';
-      case SYNTAX_MODE.SINGLE_METHOD_WITH_INSTANCES_AND_CASES:
+      case DSL_MODE.SINGLE_METHOD_WITH_INSTANCES_AND_CASES:
         var baseClassParamNamesWithDollars = _classes
             .map((e) => '\$${_lowerFirstChar(e.baseName)}Param')
             .join(', ');
@@ -333,7 +315,7 @@ class ClassSwitchClassGenerator {
       );
     }
     ''';
-      case SYNTAX_MODE.OUTER_METHOD_TAKES_INSTANCES_AND_RETURNS_CASE_FUNCTION:
+      case DSL_MODE.OUTER_METHOD_TAKES_INSTANCES_AND_RETURNS_CASE_FUNCTION:
         var baseClassParamNames = _subTypePermutations
             .map((e) => 'T Function(${e.join(', ')}) ${_classMethodName(e)}')
             .join(', ');
@@ -373,7 +355,8 @@ class ClassSwitchClassGenerator {
   }
 
   String _classMethodName(List<String> types) =>
-      _lowerFirstChar(this.methodPrefix + types.join(this.methodSeparator));
+      _lowerFirstChar(options.abstractMethodPrefix +
+          types.join(options.abstractMethodSubTypeSeparator));
 
   String _ifStatement(
       List<String> params, List<String> types, String handler, bool elseIf) {
@@ -402,8 +385,7 @@ class ClassSwitchClassGenerator {
               TypeAndName(e.baseName, '${_lowerFirstChar(e.baseName)}Attr'))
           .toList());
 
-    var baseClassParamNames = _subTypePermutations
-        .map((e) => 'T Function(${e.join(', ')}) ${_classMethodName(e)}');
+    var baseClassParamNames = caseParameters();
 
     var wrapperClassAttributesWithDollars =
         _classes.map((e) => '\$${_lowerFirstChar(e.baseName)}Attr').join(', ');

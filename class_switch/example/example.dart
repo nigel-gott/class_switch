@@ -11,23 +11,18 @@ class Orange extends Fruit {}
 
 void main() {
   var myFruit = Apple();
-  var switchRun = myFruit.$switch(
-          (apple) => 1,
-          (orange) => 2
-  );
-  var switchRun = Fruit.$switchDefault(myFruit)(
-          (apple) => 1,
-      $default: (fruit) => 2
-  );
 
-  assert switchRun == 1;
-  assert(MyFruitSwitcher().$switch(Orange()) == 2);
-  assert(MyFruitHandlerWithADefault().$switchDefault(Orange())
-  ==
-  '
-  orange is special
-  '
-  );
+  var result = myFruit.$switch(
+      (apple) => 1, //
+      (orange) => 2);
+  assert(result == 1);
+
+  result = MyFruitSwitcher().$switch(Orange());
+  assert(result == 2);
+
+  var strResult = myFruit.$switch((apple) => 'x', (orange) => 'y');
+
+  assert(strResult == 'x');
 }
 
 class MyFruitSwitcher extends _$FruitSwitcher<int> {
