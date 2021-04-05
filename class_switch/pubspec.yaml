@@ -1,8 +1,9 @@
 name: class_switch
 description: >-
-  Package containing the annotations used by the `class_switch_generator` package to
-  specify which classes to generate dispatchers for.
-version: 0.0.1-dev.0
+  class_switch lets you you switch over all the sub-classes of a class instance
+  or over multiple different classes at once. Pairs with class_switch_generator
+  which does the actual code generation to enable class switching.
+version: 0.0.1-dev.1
 homepage: https://github.com/nigel-gott/class_switch
 
 environment:

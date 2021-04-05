@@ -1,7 +1,9 @@
 name: class_switch_generator
 description: >-
-  Generates abstract dispatcher classes with handle methods for all sub classes of an annotated class.
-version: 0.0.1-dev.0
+  class_switch_generator lets you you switch over all the sub-classes of a class
+  instance or over multiple different classes at once. Pairs with class_switch
+  which contains the annotations to mark classes to have switch code generated for.
+version: 0.0.1-dev.1
 homepage: https://github.com/nigel-gott/class_switch
 
 environment:
