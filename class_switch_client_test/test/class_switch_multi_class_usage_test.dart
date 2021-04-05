@@ -58,7 +58,7 @@ class MyClassSwitcher extends _$MyClassSwitcher<String> {
 void main() {
   group('Tests showing class_switch library usage with multiple classes.', () {
     group(
-        'Annotating a class with @ClassSwitch() a list of sub types will '
+        'Annotating a class with @ClassSwitch() a list of sub-types will '
         'generate:', () {
       test(
           'A class with abstract methods for each sub-class and a method '
@@ -84,7 +84,7 @@ void main() {
         //
         // These modes do no affect the Switcher classes.
         //
-        // Each of these modes provide the same compile time guarantees such that adding/removing sub types will
+        // Each of these modes provide the same compile time guarantees such that adding/removing sub-types will
         // cause compiler errors about missing cases. However none provide a good autocomplete experience when a
         // new sub type is added/removed as you have to manually change the parameters in intellij. Instead
         // implement a switcher class to get autocomplete support as you can ctrl-enter "implement missing methods"

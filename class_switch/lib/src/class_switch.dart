@@ -57,7 +57,7 @@ enum DSL_MODE {
   /// ```
   SINGLE_METHOD_WITH_INSTANCES_AND_CASES,
 
-  /// In [DSL_MODE.SINGLE_METHOD_WITH_INSTANCES_AND_CASES] the generated
+  /// In [DSL_MODE.OUTER_METHOD_TAKES_INSTANCES_AND_RETURNS_CASE_FUNCTION] the generated
   /// $switchXXYY functions take the instances and return an anonymous function
   /// which then takes the case functions and performs the switch.
   ///
@@ -90,7 +90,7 @@ class ClassSwitch {
   /// Explicitly provide a list of base classes to generate a switcher for.
   /// When multiple are provided then the switch functions will take an instance
   /// of each base class in turn and then require case functions for every
-  /// possible combination of sub types.
+  /// possible combination of sub-types.
   ///
   /// The annotated class must be explicitly provided in this list if you still
   /// want the class switches to take it as a parameter. Otherwise you can

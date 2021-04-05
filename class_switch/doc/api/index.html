@@ -94,16 +94,16 @@ Mixin you can autocomplete the missing functions for the new
 sub-type.</li>
 <li>The ability to switch over multiple different base classes, resulting in
 switchers which have case statements for every possible combination of
-sub types. Super useful when used with the Bloc library!</li>
+sub-types. Super useful when used with the Bloc library!</li>
 <li>Highly customizable code generation via annotation options with multiple
 different configurable DSLs to match your usage and make the generated
 code as readable as possible.</li>
 </ul>
 <h1 id="important-caveats">Important Caveats:</h1>
 <ul>
-<li>When annotating a base class all of it's subclasses must be in the same
+<li>When annotating a base class all of its sub-classes must be in the same
 file as or included via the part statement in the file with the annotation
-, otherwise class_switcher will not find sub-classes outside of this and
+, otherwise class_switcher will not find sub-classes outside this and
 the generated code will throw runtime errors if provided with these
 unknown sub-classes.</li>
 </ul>

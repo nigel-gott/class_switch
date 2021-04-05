@@ -36,15 +36,15 @@
 ///     sub-type.
 ///   - The ability to switch over multiple different base classes, resulting in
 ///     switchers which have case statements for every possible combination of
-///     sub types. Super useful when used with the Bloc library!
+///     sub-types. Super useful when used with the Bloc library!
 ///   - Highly customizable code generation via annotation options with multiple
 ///     different configurable DSLs to match your usage and make the generated
 ///     code as readable as possible.
 ///
 /// # Important Caveats:
-/// * When annotating a base class all of it's subclasses must be in the same
+/// * When annotating a base class all of its sub-classes must be in the same
 ///   file as or included via the part statement in the file with the annotation
-///   , otherwise class_switcher will not find sub-classes outside of this and
+///   , otherwise class_switcher will not find sub-classes outside this and
 ///   the generated code will throw runtime errors if provided with these
 ///   unknown sub-classes.
 ///
@@ -192,9 +192,10 @@
 ///   ```
 ///
 /// # Other provided DSLs and generation customization
-/// See [DSL_MODE] and [ClassSwitchOptions] for further information on the
-/// different DSL's `class_switch_generator` can make and how to customize the
-/// generated code.
+/// See [DSL_MODE](https://pub.dev/documentation/class_switch/latest/class_switch/DSL_MODE-class.html)
+/// and [ClassSwitchOptions](https://pub.dev/documentation/class_switch/latest/class_switch/ClassSwitchOptions-class.html)
+/// for further information on the different DSL's `class_switch_generator` can
+/// make and how to customize the generated code.
 ///
 ///```dart
 ///   @ClassSwitch()
