@@ -222,7 +222,7 @@ similar situation.</p>
   class EventB extends BlocEvent {}
 
   // This will generate a mixin you can use with Bloc like so
-  @ClassSwitch(classes:[BlocState, BlocEvent]}
+  @ClassSwitch(classes:[BlocState, BlocEvent])
   class MyBloc extends Bloc&lt;BlocEvent, BlocState&gt; with _$MyBlocSwitcher&lt;BlocState&gt; {
 
     @override
