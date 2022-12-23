@@ -6,13 +6,13 @@ environment:
   sdk: '>=2.12.0 <3.0.0'
 
 dependencies:
-  class_switch: ^0.0.1-dev.2
+  class_switch: ^0.0.1-dev.3
 
 dev_dependencies:
-  class_switch_generator: ^0.0.1-dev.2
+  build_runner: ^2.3.3
+  class_switch_generator: ^0.0.1-dev.3
   lint: ^2.0.0
   test: ^1.22.1
-  build_runner: ^2.3.3
 
 #dependency_overrides:
 #  class_switch_generator:
