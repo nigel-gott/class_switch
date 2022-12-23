@@ -10,6 +10,7 @@ pubspec.lock
 
 # Don't commit generated dart code
 *.g.dart
+!class_switch/example/example.g.dart
 
 # Directory created by dartdoc
 # If you don't generate documentation locally you can remove this line.

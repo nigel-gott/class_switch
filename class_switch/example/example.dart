@@ -10,17 +10,17 @@ class Apple extends Fruit {}
 class Orange extends Fruit {}
 
 void main() {
-  var myFruit = Apple();
+  final myFruit = Apple();
 
   var result = myFruit.$switch(
       (apple) => 1, //
-      (orange) => 2);
+      (orange) => 2,);
   assert(result == 1);
 
   result = MyFruitSwitcher().$switch(Orange());
   assert(result == 2);
 
-  var strResult = myFruit.$switch((apple) => 'x', (orange) => 'y');
+  final strResult = myFruit.$switch((apple) => 'x', (orange) => 'y');
 
   assert(strResult == 'x');
 }
