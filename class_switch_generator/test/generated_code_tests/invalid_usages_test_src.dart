@@ -2,9 +2,10 @@ import 'package:class_switch/class_switch.dart';
 import 'package:source_gen_test/annotations.dart';
 
 @ShouldThrow(
-    '@ClassSwitch does not support abstract classes with no sub '
-    'classes.',
-    todo: 'Remove @ClassSwitch from BaseClass or define sub classes for it.')
+  '@ClassSwitch does not support abstract classes with no sub '
+  'classes.',
+  todo: 'Remove @ClassSwitch from BaseClass or define sub classes for it.',
+)
 @ClassSwitch()
 abstract class BaseClass {}
 
@@ -17,10 +18,10 @@ int cannotAnnotateShortFormFunctions() => 0;
 
 @ShouldThrow(
   '@ClassSwitch only supports classes.',
-  todo: 'Remove @ClassSwitch from cannotAnnotateEnums.',
+  todo: 'Remove @ClassSwitch from CannotAnnotateEnums.',
 )
 @ClassSwitch()
-enum cannotAnnotateEnums { ONE }
+enum CannotAnnotateEnums { one }
 
 @ShouldThrow(
   '@ClassSwitch only supports classes.',

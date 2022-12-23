@@ -19,18 +19,21 @@ class LoadingState extends State {}
 class MyClass {}
 
 @ClassSwitch(
-    classes: [State, Event],
-    options: ClassSwitchOptions(
-        switchFunctionPrefix: '\$outer',
-        dslMode:
-            DSL_MODE.OUTER_METHOD_TAKES_INSTANCES_AND_RETURNS_CASE_FUNCTION))
+  classes: [State, Event],
+  options: ClassSwitchOptions(
+    switchFunctionPrefix: '\$outer',
+    dslMode: DSL_MODE.OUTER_METHOD_TAKES_INSTANCES_AND_RETURNS_CASE_FUNCTION,
+  ),
+)
 class MyClass2 {}
 
 @ClassSwitch(
-    classes: [State, Event],
-    options: ClassSwitchOptions(
-        switchFunctionPrefix: '\$single',
-        dslMode: DSL_MODE.SINGLE_METHOD_WITH_INSTANCES_AND_CASES))
+  classes: [State, Event],
+  options: ClassSwitchOptions(
+    switchFunctionPrefix: '\$single',
+    dslMode: DSL_MODE.SINGLE_METHOD_WITH_INSTANCES_AND_CASES,
+  ),
+)
 class MyClass3 {}
 
 class MyClassSwitcher extends _$MyClassSwitcher<String> {
@@ -63,21 +66,29 @@ void main() {
       test(
           'A class with abstract methods for each sub-class and a method '
           'dispatching to the corresponding abstract subtype method.', () {
-        var myClassSwitcher = MyClassSwitcher();
-        expect(myClassSwitcher.$switch(RunningState(), OpenEvent()),
-            'Running Open');
-        expect(myClassSwitcher.$switch(RunningState(), CloseEvent()),
-            'Running Close');
-        expect(myClassSwitcher.$switch(LoadingState(), OpenEvent()),
-            'Loading Open');
-        expect(myClassSwitcher.$switch(LoadingState(), CloseEvent()),
-            'Loading Close');
+        final myClassSwitcher = MyClassSwitcher();
+        expect(
+          myClassSwitcher.$switch(RunningState(), OpenEvent()),
+          'Running Open',
+        );
+        expect(
+          myClassSwitcher.$switch(RunningState(), CloseEvent()),
+          'Running Close',
+        );
+        expect(
+          myClassSwitcher.$switch(LoadingState(), OpenEvent()),
+          'Loading Open',
+        );
+        expect(
+          myClassSwitcher.$switch(LoadingState(), CloseEvent()),
+          'Loading Close',
+        );
       });
       test(
           'An extension method not utilizing this to switch with on the target '
           'class', () {
-        var state = LoadingState();
-        var event = OpenEvent();
+        final state = LoadingState();
+        final event = OpenEvent();
 
         // @ClassSwitch(syntax_mode:...) can take three different values, each one
         // generating a different api/syntax for performing a class switch.
@@ -100,28 +111,31 @@ void main() {
         // DSL_MODE: WRAPPER_CLASS
         // The switch function returns a callable 'switch' Class wrapping the instance parameters (like a closure) which has a call method (can type .call to get autocomplete and delete after manually)
 
-        // Force dartfmt to give each case a newline with a blank comment after the first case
+        // Force format to give each case a newline with a blank comment after the first case
         var r = $switchStateEvent(state, event)(
-            (rs, oe) => 'rsOe', //
-            (rs, ce) => 'rsCe',
-            (ls, oe) => 'lsOe',
-            (ls, ce) => 'lsCe');
+          (rs, oe) => 'rsOe', //
+          (rs, ce) => 'rsCe',
+          (ls, oe) => 'lsOe',
+          (ls, ce) => 'lsCe',
+        );
         expect(r, 'lsOe');
 
         // Also provides a cases method which is exactly the same as call if you prefer for readability.
         r = $switchStateEvent(state, event).cases(
-            (rs, oe) => '1', //
-            (rs, ce) => '2',
-            (ls, oe) => '3',
-            (ls, ce) => '3');
+          (rs, oe) => '1', //
+          (rs, ce) => '2',
+          (ls, oe) => '3',
+          (ls, ce) => '3',
+        );
         expect(r, '3');
 
         // Or you can just use the Class directly (the function above provides a better autocomplete experience however)
         r = _$StateEventSwitchWrapper(state, event)(
-            (rs, oe) => 'a', //
-            (rs, ce) => 'b',
-            (ls, oe) => 'c',
-            (ls, ce) => 'd');
+          (rs, oe) => 'a', //
+          (rs, ce) => 'b',
+          (ls, oe) => 'c',
+          (ls, ce) => 'd',
+        );
         expect(r, 'c');
 
         // DSL_MODE: METHOD_TAKES_BOTH_INSTANCES_AND_CASES
@@ -130,21 +144,23 @@ void main() {
         // as selecting the method and hitting enter instantly generates the instances + case clauses in one key press.
         // However you the syntax looks less like a switch statement and is possibly less readable this way.
         r = $singleStateEvent(
-            state,
-            event,
-            (runningState, openEvent) => 1,
-            (runningState, closeEvent) => 2,
-            (loadingState, openEvent) => 3,
-            (loadingState, closeEvent) => 4);
+          state,
+          event,
+          (runningState, openEvent) => 1,
+          (runningState, closeEvent) => 2,
+          (loadingState, openEvent) => 3,
+          (loadingState, closeEvent) => 4,
+        );
         expect(r, 3);
 
         // DSL_MODE: METHOD_TAKES_INSTANCES_RETURNING_CASE_FUNCTION
         // Or finally just using anonymous methods which has no autocomplete support in intellij at all currently (there is an open issue).
         r = $outerStateEvent(state, event)(
-            (runningState, openEvent) => true,
-            (runningState, closeEvent) => true,
-            (loadingState, openEvent) => false,
-            (loadingState, closeEvent) => true);
+          (runningState, openEvent) => true,
+          (runningState, closeEvent) => true,
+          (loadingState, openEvent) => false,
+          (loadingState, closeEvent) => true,
+        );
         expect(r, false);
       });
     });

@@ -1,13 +1,13 @@
 # See https://github.com/dart-lang/mono_repo for details
-dart:
+sdk:
   - stable
 
 stages:
   - analyze:
       - group:
         - command: pub run build_runner build --delete-conflicting-outputs
-        - dartfmt
-        - dartanalyzer
+        - format
+        - analyze
 
 cache:
   directories:

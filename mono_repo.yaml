@@ -1,4 +1,4 @@
-travis:
+github:
 
 merge_stages:
   - analyze

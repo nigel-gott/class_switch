@@ -1,11 +1,11 @@
 # See https://github.com/dart-lang/mono_repo for details
-dart:
+sdk:
   - stable
 
 stages:
   - analyze:
-      - dartanalyzer
-      - dartfmt
+      - analyze
+      - format
 
 cache:
   directories:

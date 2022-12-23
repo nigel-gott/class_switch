@@ -29,10 +29,12 @@ void main() {
     test(
         'Generates an extra handler function for the base class type if it is '
         'not abstract.', () {
-      var func = (f) => $switchNonAbstractBaseClass<String>(f)(
-          (firstSubType) => 'first', //
-          (secondSubType) => 'second',
-          (nonAbstractBaseClass) => 'base');
+      String func(NonAbstractBaseClass f) =>
+          $switchNonAbstractBaseClass<String>(f)(
+            (firstSubType) => 'first', //
+            (secondSubType) => 'second',
+            (nonAbstractBaseClass) => 'base',
+          );
       expect(func(FirstSubClassOfNonAbstractBaseClass()), 'first');
       expect(func(SecondSubClassOfNonAbstractBaseClass()), 'second');
       expect(func(NonAbstractBaseClass()), 'base');
@@ -40,9 +42,10 @@ void main() {
     test(
         'Only generates for immediate sub-classes of the annotated type and '
         'ignores any sub-classes of the sub-classes', () {
-      var func = (f) => $switchBaseClass<String>(f)(
-          (firstSubType) => 'first', //
-          (secondSubType) => 'second');
+      String func(BaseClass f) => $switchBaseClass<String>(f)(
+            (firstSubType) => 'first', //
+            (secondSubType) => 'second',
+          );
       expect(func(FirstSubType()), 'first');
       expect(func(SecondSubType()), 'second');
       expect(func(FirstSubTypeOfFirstSubType()), 'first');
@@ -52,9 +55,11 @@ void main() {
         'Generates with a single switch handler for the base class when non '
         'abstract base class with no sub classes is annotated', () {
       expect(
-          $switchClassWithNoSubClasses(ClassWithNoSubClasses())(
-              (classWithNoSubClasses) => 1),
-          1);
+        $switchClassWithNoSubClasses(ClassWithNoSubClasses())(
+          (classWithNoSubClasses) => 1,
+        ),
+        1,
+      );
     });
   });
 }

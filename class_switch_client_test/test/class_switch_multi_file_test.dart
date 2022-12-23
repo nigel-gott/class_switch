@@ -18,7 +18,7 @@ void main() {
     group('Annotating a class with @ClassSwitch() will generate:', () {
       test('Extension methods allowing switching over an instance directly ',
           () {
-        Fruit orange = Orange();
+        final Fruit orange = Orange();
         var r = orange.$switch(
             (apple) => apple.appleOnly, //
             (pear) => 'pear',

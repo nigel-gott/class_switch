@@ -1,0 +1,242 @@
+# Created with package:mono_repo v6.4.2
+name: Dart CI
+on:
+  push:
+    branches:
+      - main
+      - master
+  pull_request:
+defaults:
+  run:
+    shell: bash
+env:
+  PUB_ENVIRONMENT: bot.github
+permissions: read-all
+
+jobs:
+  job_001:
+    name: mono_repo self validate
+    runs-on: ubuntu-latest
+    steps:
+      - name: Cache Pub hosted dependencies
+        uses: actions/cache@9b0c1fce7a93df8e3bb8926b0d6e9d89e92f20a7
+        with:
+          path: "~/.pub-cache/hosted"
+          key: "os:ubuntu-latest;pub-cache-hosted;sdk:stable"
+          restore-keys: |
+            os:ubuntu-latest;pub-cache-hosted
+            os:ubuntu-latest
+      - name: Setup Dart SDK
+        uses: dart-lang/setup-dart@6a218f2413a3e78e9087f638a238f6b40893203d
+        with:
+          sdk: stable
+      - id: checkout
+        name: Checkout repository
+        uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8
+      - name: mono_repo self validate
+        run: dart pub global activate mono_repo 6.4.2
+      - name: mono_repo self validate
+        run: dart pub global run mono_repo generate --validate
+  job_002:
+    name: "analyze; PKGS: class_switch, class_switch_generator; `dart analyze`"
+    runs-on: ubuntu-latest
+    steps:
+      - name: Cache Pub hosted dependencies
+        uses: actions/cache@9b0c1fce7a93df8e3bb8926b0d6e9d89e92f20a7
+        with:
+          path: "~/.pub-cache/hosted"
+          key: "os:ubuntu-latest;pub-cache-hosted;sdk:stable;packages:class_switch-class_switch_generator;commands:analyze"
+          restore-keys: |
+            os:ubuntu-latest;pub-cache-hosted;sdk:stable;packages:class_switch-class_switch_generator
+            os:ubuntu-latest;pub-cache-hosted;sdk:stable
+            os:ubuntu-latest;pub-cache-hosted
+            os:ubuntu-latest
+      - name: Setup Dart SDK
+        uses: dart-lang/setup-dart@6a218f2413a3e78e9087f638a238f6b40893203d
+        with:
+          sdk: stable
+      - id: checkout
+        name: Checkout repository
+        uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8
+      - id: class_switch_pub_upgrade
+        name: class_switch; dart pub upgrade
+        run: dart pub upgrade
+        if: "always() && steps.checkout.conclusion == 'success'"
+        working-directory: class_switch
+      - name: class_switch; dart analyze
+        run: dart analyze
+        if: "always() && steps.class_switch_pub_upgrade.conclusion == 'success'"
+        working-directory: class_switch
+      - id: class_switch_generator_pub_upgrade
+        name: class_switch_generator; dart pub upgrade
+        run: dart pub upgrade
+        if: "always() && steps.checkout.conclusion == 'success'"
+        working-directory: class_switch_generator
+      - name: class_switch_generator; dart analyze
+        run: dart analyze
+        if: "always() && steps.class_switch_generator_pub_upgrade.conclusion == 'success'"
+        working-directory: class_switch_generator
+  job_003:
+    name: "analyze; PKGS: class_switch, class_switch_generator; `dart format --output=none --set-exit-if-changed .`"
+    runs-on: ubuntu-latest
+    steps:
+      - name: Cache Pub hosted dependencies
+        uses: actions/cache@9b0c1fce7a93df8e3bb8926b0d6e9d89e92f20a7
+        with:
+          path: "~/.pub-cache/hosted"
+          key: "os:ubuntu-latest;pub-cache-hosted;sdk:stable;packages:class_switch-class_switch_generator;commands:format"
+          restore-keys: |
+            os:ubuntu-latest;pub-cache-hosted;sdk:stable;packages:class_switch-class_switch_generator
+            os:ubuntu-latest;pub-cache-hosted;sdk:stable
+            os:ubuntu-latest;pub-cache-hosted
+            os:ubuntu-latest
+      - name: Setup Dart SDK
+        uses: dart-lang/setup-dart@6a218f2413a3e78e9087f638a238f6b40893203d
+        with:
+          sdk: stable
+      - id: checkout
+        name: Checkout repository
+        uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8
+      - id: class_switch_pub_upgrade
+        name: class_switch; dart pub upgrade
+        run: dart pub upgrade
+        if: "always() && steps.checkout.conclusion == 'success'"
+        working-directory: class_switch
+      - name: "class_switch; dart format --output=none --set-exit-if-changed ."
+        run: "dart format --output=none --set-exit-if-changed ."
+        if: "always() && steps.class_switch_pub_upgrade.conclusion == 'success'"
+        working-directory: class_switch
+      - id: class_switch_generator_pub_upgrade
+        name: class_switch_generator; dart pub upgrade
+        run: dart pub upgrade
+        if: "always() && steps.checkout.conclusion == 'success'"
+        working-directory: class_switch_generator
+      - name: "class_switch_generator; dart format --output=none --set-exit-if-changed ."
+        run: "dart format --output=none --set-exit-if-changed ."
+        if: "always() && steps.class_switch_generator_pub_upgrade.conclusion == 'success'"
+        working-directory: class_switch_generator
+  job_004:
+    name: "analyze; PKGS: class_switch_client_test, class_switch_project_example; `pub run build_runner build --delete-conflicting-outputs`, `dart format --output=none --set-exit-if-changed .`, `dart analyze`"
+    runs-on: ubuntu-latest
+    steps:
+      - name: Cache Pub hosted dependencies
+        uses: actions/cache@9b0c1fce7a93df8e3bb8926b0d6e9d89e92f20a7
+        with:
+          path: "~/.pub-cache/hosted"
+          key: "os:ubuntu-latest;pub-cache-hosted;sdk:stable;packages:class_switch_client_test-class_switch_project_example;commands:command_0-format-analyze"
+          restore-keys: |
+            os:ubuntu-latest;pub-cache-hosted;sdk:stable;packages:class_switch_client_test-class_switch_project_example
+            os:ubuntu-latest;pub-cache-hosted;sdk:stable
+            os:ubuntu-latest;pub-cache-hosted
+            os:ubuntu-latest
+      - name: Setup Dart SDK
+        uses: dart-lang/setup-dart@6a218f2413a3e78e9087f638a238f6b40893203d
+        with:
+          sdk: stable
+      - id: checkout
+        name: Checkout repository
+        uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8
+      - id: class_switch_client_test_pub_upgrade
+        name: class_switch_client_test; dart pub upgrade
+        run: dart pub upgrade
+        if: "always() && steps.checkout.conclusion == 'success'"
+        working-directory: class_switch_client_test
+      - name: "class_switch_client_test; pub run build_runner build --delete-conflicting-outputs"
+        run: pub run build_runner build --delete-conflicting-outputs
+        if: "always() && steps.class_switch_client_test_pub_upgrade.conclusion == 'success'"
+        working-directory: class_switch_client_test
+      - name: "class_switch_client_test; dart format --output=none --set-exit-if-changed ."
+        run: "dart format --output=none --set-exit-if-changed ."
+        if: "always() && steps.class_switch_client_test_pub_upgrade.conclusion == 'success'"
+        working-directory: class_switch_client_test
+      - name: class_switch_client_test; dart analyze
+        run: dart analyze
+        if: "always() && steps.class_switch_client_test_pub_upgrade.conclusion == 'success'"
+        working-directory: class_switch_client_test
+      - id: class_switch_project_example_pub_upgrade
+        name: class_switch_project_example; dart pub upgrade
+        run: dart pub upgrade
+        if: "always() && steps.checkout.conclusion == 'success'"
+        working-directory: class_switch_project_example
+      - name: "class_switch_project_example; pub run build_runner build --delete-conflicting-outputs"
+        run: pub run build_runner build --delete-conflicting-outputs
+        if: "always() && steps.class_switch_project_example_pub_upgrade.conclusion == 'success'"
+        working-directory: class_switch_project_example
+      - name: "class_switch_project_example; dart format --output=none --set-exit-if-changed ."
+        run: "dart format --output=none --set-exit-if-changed ."
+        if: "always() && steps.class_switch_project_example_pub_upgrade.conclusion == 'success'"
+        working-directory: class_switch_project_example
+      - name: class_switch_project_example; dart analyze
+        run: dart analyze
+        if: "always() && steps.class_switch_project_example_pub_upgrade.conclusion == 'success'"
+        working-directory: class_switch_project_example
+  job_005:
+    name: "unit_test; PKG: class_switch_client_test; `pub run build_runner test --delete-conflicting-outputs`"
+    runs-on: ubuntu-latest
+    steps:
+      - name: Cache Pub hosted dependencies
+        uses: actions/cache@9b0c1fce7a93df8e3bb8926b0d6e9d89e92f20a7
+        with:
+          path: "~/.pub-cache/hosted"
+          key: "os:ubuntu-latest;pub-cache-hosted;sdk:stable;packages:class_switch_client_test;commands:command_1"
+          restore-keys: |
+            os:ubuntu-latest;pub-cache-hosted;sdk:stable;packages:class_switch_client_test
+            os:ubuntu-latest;pub-cache-hosted;sdk:stable
+            os:ubuntu-latest;pub-cache-hosted
+            os:ubuntu-latest
+      - name: Setup Dart SDK
+        uses: dart-lang/setup-dart@6a218f2413a3e78e9087f638a238f6b40893203d
+        with:
+          sdk: stable
+      - id: checkout
+        name: Checkout repository
+        uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8
+      - id: class_switch_client_test_pub_upgrade
+        name: class_switch_client_test; dart pub upgrade
+        run: dart pub upgrade
+        if: "always() && steps.checkout.conclusion == 'success'"
+        working-directory: class_switch_client_test
+      - name: "class_switch_client_test; pub run build_runner test --delete-conflicting-outputs"
+        run: pub run build_runner test --delete-conflicting-outputs
+        if: "always() && steps.class_switch_client_test_pub_upgrade.conclusion == 'success'"
+        working-directory: class_switch_client_test
+    needs:
+      - job_001
+      - job_002
+      - job_003
+      - job_004
+  job_006:
+    name: "unit_test; PKG: class_switch_generator; `dart test`"
+    runs-on: ubuntu-latest
+    steps:
+      - name: Cache Pub hosted dependencies
+        uses: actions/cache@9b0c1fce7a93df8e3bb8926b0d6e9d89e92f20a7
+        with:
+          path: "~/.pub-cache/hosted"
+          key: "os:ubuntu-latest;pub-cache-hosted;sdk:stable;packages:class_switch_generator;commands:test"
+          restore-keys: |
+            os:ubuntu-latest;pub-cache-hosted;sdk:stable;packages:class_switch_generator
+            os:ubuntu-latest;pub-cache-hosted;sdk:stable
+            os:ubuntu-latest;pub-cache-hosted
+            os:ubuntu-latest
+      - name: Setup Dart SDK
+        uses: dart-lang/setup-dart@6a218f2413a3e78e9087f638a238f6b40893203d
+        with:
+          sdk: stable
+      - id: checkout
+        name: Checkout repository
+        uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8
+      - id: class_switch_generator_pub_upgrade
+        name: class_switch_generator; dart pub upgrade
+        run: dart pub upgrade
+        if: "always() && steps.checkout.conclusion == 'success'"
+        working-directory: class_switch_generator
+      - name: class_switch_generator; dart test
+        run: dart test
+        if: "always() && steps.class_switch_generator_pub_upgrade.conclusion == 'success'"
+        working-directory: class_switch_generator
+    needs:
+      - job_001
+      - job_002
+      - job_003
+      - job_004

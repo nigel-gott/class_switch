@@ -207,3 +207,9 @@ class ClassSwitchOptions {
       this.switchFunctionPrefix = '\$switch',
       this.dslMode = DSL_MODE.WRAPPER_CLASS});
 }
+
+class MultiDispatch {
+  const MultiDispatch();
+}
+
+const M = MultiDispatch();

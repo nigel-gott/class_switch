@@ -1,3 +1,5 @@
+// ignore_for_file: avoid_positional_boolean_parameters
+
 import 'package:optional/optional.dart';
 
 class TypeAndName {
@@ -30,15 +32,17 @@ class ClassBuilder {
   }
 
   void whichHasATemplateParameter(String param) {
-    this._genericTypes.add(param);
+    _genericTypes.add(param);
   }
 
   void addAttribute(bool isFinal, String type, String name) {
-    this._attributes.add('${isFinal ? 'final ' : ''} $type $name;');
+    _attributes.add('${isFinal ? 'final ' : ''} $type $name;');
   }
 
   void addConstructorWithFinalAttributes(List<TypeAndName> attributes) {
-    attributes.forEach((e) => addAttribute(true, e.type, e.name));
+    for (final e in attributes) {
+      addAttribute(true, e.type, e.name);
+    }
     addMethod(_className)
       ..withParameters(attributes.map((e) => 'this.${e.name}'))
       ..whichIsAbstract()
@@ -46,7 +50,7 @@ class ClassBuilder {
   }
 
   MethodBuilder addMethod(String methodName) {
-    MethodBuilder builder = MethodBuilder(methodName);
+    final MethodBuilder builder = MethodBuilder(methodName);
     _methods.add(builder);
     return builder;
   }
@@ -60,7 +64,7 @@ class ExtensionBuilder {
   ExtensionBuilder(this._on, this._name);
 
   MethodBuilder addMethod(String methodName) {
-    MethodBuilder builder = MethodBuilder(methodName);
+    final MethodBuilder builder = MethodBuilder(methodName);
     _methods.add(builder);
     return builder;
   }
@@ -78,7 +82,7 @@ class MethodBuilder {
   final String _methodName;
   final List<String> _parameters = [];
   bool _static = false;
-  Optional<String> _templateArgumentName = Optional.empty();
+  Optional<String> _templateArgumentName = const Optional.empty();
   bool _abstract = false;
   String _returnType = "void";
   String _body = "";
@@ -86,13 +90,15 @@ class MethodBuilder {
   MethodBuilder(this._methodName);
 
   String build() {
-    String typeParameter = _templateArgumentName.map((t) => "<$t>").orElse("");
-    String methodWithoutBody =
-        "${_static ? "static" : ""} $_returnType $_methodName${typeParameter}(${_parameters.join(",")})";
+    final String typeParameter =
+        _templateArgumentName.map((t) => "<$t>").orElse("");
+    final String methodWithoutBody =
+        "${_static ? "static" : ""} $_returnType $_methodName$typeParameter(${_parameters.join(",")})";
     if (_abstract) {
-      return methodWithoutBody + ";";
+      return "$methodWithoutBody;";
     } else {
-      return """$methodWithoutBody {
+      return """
+$methodWithoutBody {
 $_body
 }""";
     }
@@ -102,18 +108,20 @@ $_body
     _abstract = true;
   }
 
+  // ignore: use_setters_to_change_properties
   void andReturns(String returnType) {
     _returnType = returnType;
   }
 
-  void whichHasATemplateParameter(String _templateArgument) {
-    _templateArgumentName = Optional.of(_templateArgument);
+  void whichHasATemplateParameter(String templateArgument) {
+    _templateArgumentName = Optional.of(templateArgument);
   }
 
   void withParameters(Iterable<String> parameters) {
     _parameters.addAll(parameters);
   }
 
+  // ignore: use_setters_to_change_properties
   void withBody(String body) {
     _body = body;
   }
@@ -126,6 +134,7 @@ $_body
     _parameters.add(parameter);
   }
 
+  // ignore: use_setters_to_change_properties
   void whichIsAbstractIf(bool abstract) {
     _abstract = abstract;
   }

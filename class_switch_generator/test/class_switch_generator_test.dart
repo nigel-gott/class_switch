@@ -16,7 +16,9 @@ Future main() async {
 
 Future testFile(String fileName) async {
   final LibraryReader reader = await initializeLibraryReaderForDirectory(
-      'test/generated_code_tests', fileName);
+    'test/generated_code_tests',
+    fileName,
+  );
 
   testAnnotatedElements<ClassSwitch>(
     reader,
@@ -31,8 +33,11 @@ class WrappingClassSwitchGeneratorForTest
   WrappingClassSwitchGeneratorForTest(this._libraryReader);
 
   @override
-  generateForAnnotatedElement(
-      Element element, ConstantReader annotation, BuildStep buildStep) {
+  String generateForAnnotatedElement(
+    Element element,
+    ConstantReader annotation,
+    BuildStep buildStep,
+  ) {
     return ClassSwitchGenerator()
         .generateForElement(element, annotation, _libraryReader);
   }

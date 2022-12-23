@@ -19,18 +19,20 @@ void main() {
     group('Annotating a class with @ClassSwitch() will generate:', () {
       test('Extension methods allowing switching over an instance directly ',
           () {
-        Fruit orange = Orange();
+        final Fruit orange = Orange();
         var r = orange.$switch(
-            (apple) => apple.appleOnly, //
-            (pear) => 'pear',
-            (orange) => 'orange');
+          (apple) => apple.appleOnly, //
+          (pear) => 'pear',
+          (orange) => 'orange',
+        );
         assert(r == 'orange');
 
-        Fruit f = Pear();
+        final Fruit f = Pear();
         r = f.$switch(
-            (apple) => apple.appleOnly, //
-            (pear) => 'pear',
-            (orange) => 'orange');
+          (apple) => apple.appleOnly, //
+          (pear) => 'pear',
+          (orange) => 'orange',
+        );
         assert(r == 'pear');
       });
     });
